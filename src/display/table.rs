@@ -1,9 +1,13 @@
+use std::borrow::{Borrow, BorrowMut};
+
 use ratatui::{
     layout::{Constraint, Rect},
     style::{Color, Modifier, Style},
     widgets::{Block, Borders, Row, Table},
     Frame,
 };
+
+use crate::app::BTDevice;
 
 use super::UIState;
 
@@ -12,12 +16,14 @@ pub fn draw_table(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
     let block = Block::default().title("Sample Table").borders(Borders::ALL);
 
     // Define table rows
-    let rows = vec![
-        Row::new(vec!["ID", "Name", "Status"]),
-        Row::new(vec!["1", "Alice", "Active"]),
-        Row::new(vec!["2", "Bob", "Inactive"]),
-        Row::new(vec!["3", "Charlie", "Pending"]),
-    ];
+    let mut rows = vec![Row::new(vec!["", "Name", "MAC Address"])];
+
+    let d = ui_state.devices.as_ref().borrow(); // Thank u borrow checker :pray:
+
+    rows.extend(
+        d.iter()
+            .map(|d: &BTDevice| Row::new(vec!["", &d.name, &d.address])),
+    );
 
     // Define the table
     let table = Table::new(

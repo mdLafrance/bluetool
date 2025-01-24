@@ -20,6 +20,7 @@ use super::bluetooth::BTDevice;
 
 #[derive(Debug)]
 pub enum BMEvent {
+    Pass,
     Exit,
     ScrollDown,
     ScrollUp,
@@ -63,6 +64,9 @@ impl BluemanApp {
 
         let key_listener = launch_key_listener(self.get_event_chan_handle());
         let bluetooth_listener = launch_bluetooth_listener(self.get_event_chan_handle()).await;
+
+        // NOTE: Send one dummy event so we trigger a draw
+        self.event_send_chan.send(BMEvent::Pass).await?;
 
         // Main loop, listen for events and draw ui
         loop {

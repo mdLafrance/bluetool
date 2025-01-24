@@ -17,11 +17,33 @@ use tokio::{sync::mpsc::Sender, task::JoinHandle};
 use super::blueman::BMEvent;
 
 #[derive(Debug)]
-pub struct BTDevice(Device);
+pub struct BTDevice {
+    inner: Device,
+    pub name: String,
+    pub icon_name: String,
+    pub paired: bool,
+    pub connected: bool,
+    pub address: String,
+}
 
 impl BTDevice {
-    pub fn new(device: Device) -> Self {
-        BTDevice(device)
+    pub async fn new(device: Device) -> Self {
+        BTDevice {
+            inner: device.clone(),
+            name: device
+                .name()
+                .await
+                .unwrap_or(None)
+                .unwrap_or("".to_string()),
+            icon_name: device
+                .icon()
+                .await
+                .unwrap_or(None)
+                .unwrap_or("".to_string()),
+            address: String::from_utf8(device.address().0.to_vec()).unwrap_or("ERR".to_string()),
+            paired: device.is_paired().await.unwrap_or(false),
+            connected: device.is_connected().await.unwrap_or(false),
+        }
     }
 }
 
@@ -104,11 +126,11 @@ pub async fn launch_bluetooth_listener(
 
                             let device = adapter.device(addr).unwrap();
 
-                            event_send_chan.send(BMEvent::DeviceAdded(BTDevice::new(device))).await.unwrap();
+                            event_send_chan.send(BMEvent::DeviceAdded(BTDevice::new(device).await)).await.unwrap();
                         },
                         AdapterEvent::DeviceRemoved(addr) => {
                             let device = adapter.device(addr).unwrap();
-                            event_send_chan.send(BMEvent::DeviceRemoved(BTDevice::new(device))).await.unwrap();
+                            event_send_chan.send(BMEvent::DeviceRemoved(BTDevice::new(device).await)).await.unwrap();
                         }
                         _ => {},
                     }
@@ -127,7 +149,7 @@ pub async fn launch_bluetooth_listener(
 
 impl PartialEq for BTDevice {
     fn eq(&self, other: &Self) -> bool {
-        self.0.address() == other.0.address()
+        self.address == other.address
     }
 }
 
@@ -135,6 +157,6 @@ impl Eq for BTDevice {}
 
 impl Hash for BTDevice {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.0.address().hash(state)
+        self.address.hash(state)
     }
 }
