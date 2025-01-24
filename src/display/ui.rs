@@ -1,6 +1,5 @@
 use std::{
     cell::RefCell,
-    collections::HashSet,
     error::Error,
     io::{stdout, Stdout},
     rc::Rc,
@@ -31,7 +30,7 @@ use crate::app::BTDevice;
 use super::table::draw_table;
 
 pub struct UIState {
-    pub devices: Rc<RefCell<HashSet<BTDevice>>>,
+    pub devices: Rc<RefCell<Vec<BTDevice>>>,
     pub table_state: TableState,
 }
 

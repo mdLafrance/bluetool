@@ -17,9 +17,6 @@ pub fn draw_table(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
 
     let d = ui_state.devices.as_ref().borrow(); // Thank u borrow checker :pray:
 
-    let mut devices = d.into_iter().collect::<Vec<BTDevice>>();
-    devices.sort();
-
     // Define table rows
     let mut rows = vec![Row::new(vec![
         "",

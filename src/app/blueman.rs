@@ -1,7 +1,8 @@
-use std::{borrow::BorrowMut, cell::RefCell, collections::HashSet, rc::Rc, sync::Arc};
+use std::{borrow::BorrowMut, cell::RefCell, rc::Rc, sync::Arc};
 
 use anyhow::Result;
 use bluer::Device;
+use color_eyre::owo_colors::OwoColorize;
 use crossterm::event::{Event, EventStream, KeyCode};
 use futures::StreamExt;
 use ratatui::widgets::TableState;
@@ -30,7 +31,7 @@ pub enum BMEvent {
 }
 
 pub struct BluemanApp {
-    devices: Rc<RefCell<HashSet<BTDevice>>>,
+    devices: Rc<RefCell<Vec<BTDevice>>>,
     event_recv_chan: Receiver<BMEvent>,
     event_send_chan: Arc<Sender<BMEvent>>,
 }
@@ -40,7 +41,7 @@ impl BluemanApp {
     pub fn new() -> Self {
         let (send, recv) = channel(128);
         BluemanApp {
-            devices: Rc::new(RefCell::new(HashSet::new())),
+            devices: Rc::new(RefCell::new(Vec::with_capacity(64))),
             event_recv_chan: recv,
             event_send_chan: Arc::new(send),
         }
@@ -83,13 +84,27 @@ impl BluemanApp {
                         Some(idx) => *ui_state.table_state.selected_mut() = Some(idx + 1),
                     },
                     BMEvent::DeviceAdded(device) => {
-                        self.devices.as_ref().borrow_mut().insert(device);
+                        let mut devices = self.devices.as_ref().borrow_mut();
+
+                        if !devices.contains(&device) {
+                            devices.push(device);
+                        }
+
+                        devices.sort_by(|a, b| b.cmp(a));
                     }
                     BMEvent::DeviceRemoved(device) => {
-                        self.devices.as_ref().borrow_mut().remove(&device);
+                        let mut devices = self.devices.as_ref().borrow_mut();
+                        devices.retain(|d| d != &device);
                     }
                     BMEvent::DeviceModified(device) => {
-                        self.devices.as_ref().borrow_mut().replace(device);
+                        let mut devices = self.devices.as_ref().borrow_mut();
+                        let device_mac = device.address.clone();
+
+                        for d in devices.iter_mut() {
+                            if d.address == device_mac {
+                                *d = device.clone();
+                            }
+                        }
                     }
                     _ => continue,
                 };

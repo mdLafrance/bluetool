@@ -17,7 +17,7 @@ use tokio::{sync::mpsc::Sender, task::JoinHandle};
 
 use super::blueman::BMEvent;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct BTDevice {
     inner: Device,
     pub name: String,
@@ -55,8 +55,11 @@ impl BTDevice {
         }
     }
 
-    fn sort_value(&self) -> u8 {
-        self.connected as u8 * 2000 + self.paired as u8 * 1000
+    fn sort_value(&self) -> (i32, &str) {
+        (
+            self.connected as i32 * 2000 + self.paired as i32 * 1000,
+            &self.name,
+        )
     }
 }
 
