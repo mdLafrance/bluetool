@@ -1,7 +1,9 @@
 use std::{
+    cell::RefCell,
     collections::HashSet,
     error::Error,
     io::{stdout, Stdout},
+    rc::Rc,
 };
 
 use anyhow::Result;
@@ -20,14 +22,17 @@ use ratatui::{
     },
     style::{Color, Style, Stylize},
     text::{Line, Span},
-    widgets::{Block, Borders, Paragraph},
+    widgets::{Block, Borders, Paragraph, TableState},
     Frame, Terminal,
 };
 
+use crate::app::BTDevice;
+
 use super::table::draw_table;
 
-pub struct UIState<'a> {
-    pub devices: &'a HashSet<Device>,
+pub struct UIState {
+    pub devices: Rc<RefCell<HashSet<BTDevice>>>,
+    pub table_state: TableState,
 }
 
 /// Setup the necessary components to make terminal ui calls.
@@ -47,7 +52,7 @@ pub fn shutdown_ui() -> Result<()> {
 pub fn draw_ui(f: &mut Frame, ui_state: &mut UIState) {
     let layout = Layout::default()
         .direction(Direction::Vertical)
-        .constraints(vec![Constraint::Length(1), Constraint::Percentage(99)])
+        .constraints(vec![Constraint::Length(3), Constraint::Percentage(99)])
         .split(f.area());
 
     let header_area = layout[0];
@@ -145,7 +150,7 @@ fn draw_header(f: &mut Frame, area: Rect) {
 
     let title = Paragraph::new(vec![Line::from(vec![
         Span::styled("", Style::new().blue()),
-        Span::styled("Blueman 󰂯", Style::new().bold().white().on_blue()),
+        Span::styled(" Blueman 󰂯 ", Style::new().bold().white().on_blue()),
         Span::styled("", Style::new().blue()),
         Span::raw(" "),
         Span::styled(

@@ -1,27 +1,35 @@
-use std::{collections::HashSet, sync::Arc};
+use std::{borrow::BorrowMut, cell::RefCell, collections::HashSet, rc::Rc, sync::Arc};
 
 use anyhow::Result;
 use bluer::Device;
 use crossterm::event::{Event, EventStream, KeyCode};
 use futures::StreamExt;
+use ratatui::widgets::TableState;
 use scopeguard::defer;
 use tokio::{
     sync::mpsc::{channel, Receiver, Sender},
     task::JoinHandle,
 };
 
-use crate::display::{draw_ui, init_ui, shutdown_ui, UIState};
+use crate::{
+    app::{bluetooth::launch_bluetooth_listener, input::launch_key_listener},
+    display::{draw_ui, init_ui, shutdown_ui, UIState},
+};
+
+use super::bluetooth::BTDevice;
 
 #[derive(Debug)]
 pub enum BMEvent {
     Exit,
-    DeviceAdded(Device),
-    DeviceRemoved(Device),
-    DeviceModified(Device),
+    ScrollDown,
+    ScrollUp,
+    DeviceAdded(BTDevice),
+    DeviceRemoved(BTDevice),
+    DeviceModified(BTDevice),
 }
 
 pub struct BluemanApp {
-    devices: HashSet<Device>,
+    devices: Rc<RefCell<HashSet<BTDevice>>>,
     event_recv_chan: Receiver<BMEvent>,
     event_send_chan: Arc<Sender<BMEvent>>,
 }
@@ -31,7 +39,7 @@ impl BluemanApp {
     pub fn new() -> Self {
         let (send, recv) = channel(128);
         BluemanApp {
-            devices: HashSet::new(),
+            devices: Rc::new(RefCell::new(HashSet::new())),
             event_recv_chan: recv,
             event_send_chan: Arc::new(send),
         }
@@ -45,53 +53,47 @@ impl BluemanApp {
     pub async fn run(&mut self) -> Result<()> {
         let mut terminal = init_ui()?;
         let mut ui_state = UIState {
-            devices: &self.devices,
+            devices: self.devices.clone(),
+            table_state: TableState::new(),
         };
 
         defer! {
             shutdown_ui().unwrap();
         }
 
-        // Launch listener tasks that will forward key and bluetooth events
-        // to the event chan.
-        // NOTE: These threads will exit themselves when the event chan is
-        // closed.
-        self.launch_key_listener();
-        self.launch_bt_event_listener();
+        let key_listener = launch_key_listener(self.get_event_chan_handle());
+        let bluetooth_listener = launch_bluetooth_listener(self.get_event_chan_handle()).await;
 
         // Main loop, listen for events and draw ui
         loop {
-            match self.event_recv_chan.try_recv() {
-                Ok(BMEvent::Exit) => break,
-                _ => {}
-            };
+            if let Some(e) = self.event_recv_chan.recv().await {
+                match e {
+                    BMEvent::Exit => break,
+                    BMEvent::ScrollUp => match ui_state.table_state.selected() {
+                        Some(1) => *ui_state.table_state.selected_mut() = None,
+                        Some(idx) => *ui_state.table_state.selected_mut() = Some(idx - 1),
+                        _ => {}
+                    },
+                    BMEvent::ScrollDown => match ui_state.table_state.selected() {
+                        None => *ui_state.table_state.selected_mut() = Some(1),
+                        Some(idx) => *ui_state.table_state.selected_mut() = Some(idx + 1),
+                    },
+                    BMEvent::DeviceAdded(device) => {
+                        self.devices.as_ref().borrow_mut().insert(device);
+                    }
+                    _ => continue,
+                };
 
-            terminal.draw(|f| draw_ui(f, &mut ui_state))?;
+                terminal.draw(|f| draw_ui(f, &mut ui_state))?;
+            } else {
+                break;
+            }
         }
 
+        key_listener.abort();
+        bluetooth_listener.abort();
+
         Ok(())
-    }
-
-    /// Launches a subprocess which asynchronously listens for input events,
-    /// mashalls them, and forwards them to the send channel.
-    fn launch_key_listener(&self) -> JoinHandle<()> {
-        let mut event_stream = EventStream::new();
-        let event_chan = self.get_event_chan_handle();
-
-        tokio::spawn(async move {
-            'event_loop: loop {
-                match event_stream.next().await {
-                    Some(Ok(Event::Key(evnt))) => match evnt.code {
-                        // Quit key
-                        KeyCode::Char('q') => {
-                            event_chan.send(BMEvent::Exit).await.unwrap();
-                        }
-                        _ => (),
-                    },
-                    _ => break 'event_loop,
-                };
-            }
-        })
     }
 
     /// Launches a subprocess which asynchronously listens for bluetooth
