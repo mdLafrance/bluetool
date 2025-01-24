@@ -55,6 +55,10 @@ impl BTDevice {
         }
     }
 
+    pub async fn connect(&self) -> Result<()> {
+        Ok(self.inner.connect().await?)
+    }
+
     fn sort_value(&self) -> (i32, &str) {
         (
             self.connected as i32 * 2000 + self.paired as i32 * 1000,

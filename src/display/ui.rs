@@ -25,12 +25,13 @@ use ratatui::{
     Frame, Terminal,
 };
 
-use crate::app::BTDevice;
+use crate::app::{BTDevice, Banner};
 
 use super::table::draw_table;
 
 pub struct UIState {
     pub devices: Rc<RefCell<Vec<BTDevice>>>,
+    pub banner: Option<Banner>,
     pub table_state: TableState,
 }
 
@@ -51,14 +52,28 @@ pub fn shutdown_ui() -> Result<()> {
 pub fn draw_ui(f: &mut Frame, ui_state: &mut UIState) {
     let layout = Layout::default()
         .direction(Direction::Vertical)
-        .constraints(vec![Constraint::Length(3), Constraint::Percentage(99)])
+        .constraints(vec![
+            Constraint::Length(3),
+            Constraint::Percentage(99),
+            Constraint::Length(2),
+        ])
         .split(f.area());
 
     let header_area = layout[0];
     let table_area = layout[1];
+    let banner_area = layout[2];
 
     draw_header(f, header_area);
     draw_table(f, table_area, ui_state);
+    draw_banner(f, banner_area, ui_state);
+}
+
+fn draw_banner(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
+    if let Some(banner) = &mut ui_state.banner {
+        let s = Span::styled(banner.0.clone(), Style::new().black().on_green());
+
+        f.render_widget(s, area);
+    }
 }
 
 //pub fn draw(
@@ -88,8 +103,7 @@ pub fn draw_ui(f: &mut Frame, ui_state: &mut UIState) {
 //        .split(layout_l);
 //
 //    let (sysinfo_layout, left_area) = (sys_information_layout[0], sys_information_layout[1]);
-//
-//    // Split left layout
+// // Split left layout
 //    let left_layout = Layout::default()
 //        .direction(Direction::Vertical)
 //        .constraints(vec![Constraint::Length(5), Constraint::Percentage(99)])
