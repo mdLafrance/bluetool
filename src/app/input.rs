@@ -23,6 +23,30 @@ pub fn launch_key_listener(event_send_chan: Arc<Sender<BMEvent>>) -> JoinHandle<
                     KeyCode::Char('k') | KeyCode::Up => {
                         event_send_chan.send(BMEvent::ScrollUp).await.unwrap();
                     }
+                    KeyCode::Char('c') => {
+                        event_send_chan
+                            .send(BMEvent::ConnectRequested)
+                            .await
+                            .unwrap();
+                    }
+                    KeyCode::Char('d') => {
+                        event_send_chan
+                            .send(BMEvent::DisconnectRequested)
+                            .await
+                            .unwrap();
+                    }
+                    KeyCode::Char('e') => {
+                        event_send_chan
+                            .send(BMEvent::DebugFailBanner)
+                            .await
+                            .unwrap();
+                    }
+                    KeyCode::Char('b') => {
+                        event_send_chan
+                            .send(BMEvent::DebugSuccessBanner)
+                            .await
+                            .unwrap();
+                    }
                     _ => (),
                 },
                 _ => break 'event_loop,

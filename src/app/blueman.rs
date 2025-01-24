@@ -31,6 +31,10 @@ pub enum BMEvent {
     DeviceModified(BTDevice),
     BannerExpired(String),
     SwitchToMode(BMMode),
+    ConnectRequested,
+    DisconnectRequested,
+    DebugFailBanner,
+    DebugSuccessBanner,
 }
 
 #[derive(Clone)]
@@ -42,10 +46,11 @@ pub enum BannerType {
 #[derive(Clone)]
 pub struct Banner(pub String, pub BannerType);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum BMMode {
     Browse,
     TryConnect(BTDevice),
+    TryDisconnect(BTDevice),
 }
 
 pub struct BluemanApp {
@@ -98,12 +103,30 @@ impl BluemanApp {
                 // Process mode-independent events
                 match &e {
                     BMEvent::Exit => break,
+                    BMEvent::SwitchToMode(m) => {
+                        self.mode = m.clone();
+                        continue;
+                    }
                     BMEvent::BannerExpired(msg) => {
                         if let Some(current_banner) = &mut self.banner {
                             if &current_banner.0 == msg {
                                 self.banner = None;
                             }
                         }
+                    }
+                    BMEvent::DebugFailBanner => {
+                        self.set_new_banner(Banner(
+                            "Failure message!".to_owned(),
+                            BannerType::Failure,
+                        ))
+                        .await
+                    }
+                    BMEvent::DebugSuccessBanner => {
+                        self.set_new_banner(Banner(
+                            "Success message!".to_owned(),
+                            BannerType::Success,
+                        ))
+                        .await
                     }
                     _ => {}
                 };
@@ -143,33 +166,89 @@ impl BluemanApp {
                                 }
                             }
                         }
-                        _ => continue,
-                    },
+                        BMEvent::ConnectRequested => {
+                            // Find which device we're highlighting
+                            if let Some(idx) = ui_state.table_state.selected() {
+                                let device = self.devices.as_ref().borrow()[idx - 1].clone();
 
-                    BMMode::TryConnect(device) => match device.connect().await {
-                        Ok(_) => {
-                            self.event_send_chan
-                                .send(BMEvent::SwitchToMode(BMMode::Browse))
-                                .await?;
+                                self.mode = BMMode::TryConnect(device);
+                            }
+                        }
+                        BMEvent::DisconnectRequested => {
+                            // Find which device we're highlighting
+                            if let Some(idx) = ui_state.table_state.selected() {
+                                let device = self.devices.as_ref().borrow()[idx - 1].clone();
 
-                            let b = Banner(
-                                format!("Successfully connected to {}", device.name),
-                                BannerType::Success,
-                            );
-                            self.set_new_banner(b).await;
+                                self.mode = BMMode::TryDisconnect(device);
+                            }
                         }
-                        Err(e) => {
-                            let b = Banner(
-                                format!("Failed to connect to {}: {}", device.name, e.to_string()),
-                                BannerType::Failure,
-                            );
-                            self.set_new_banner(b).await
-                        }
+                        _ => {}
                     },
+                    BMMode::TryConnect(device) => {
+                        let res = device.connect().await;
+
+                        let b = Banner(format!("Connecting to"), BannerType::Success);
+
+                        match res {
+                            Ok(_) => {
+                                let b = Banner(
+                                    format!("Successfully connected to {}", device.name),
+                                    BannerType::Success,
+                                );
+                                self.set_new_banner(b).await;
+
+                                self.mode = BMMode::Browse;
+                            }
+                            Err(e) => {
+                                let b = Banner(
+                                    format!(
+                                        "Failed to connect to {}: {}",
+                                        device.name,
+                                        e.to_string()
+                                    ),
+                                    BannerType::Failure,
+                                );
+                                self.set_new_banner(b).await;
+
+                                self.mode = BMMode::Browse;
+                            }
+                        }
+                    }
+
+                    BMMode::TryDisconnect(device) => {
+                        let res = device.disconnect().await;
+
+                        let b = Banner(format!("Disconnecting from"), BannerType::Success);
+
+                        match res {
+                            Ok(_) => {
+                                let b = Banner(
+                                    format!("Successfully disconnected from {}", device.name),
+                                    BannerType::Success,
+                                );
+                                self.set_new_banner(b).await;
+
+                                self.mode = BMMode::Browse;
+                            }
+                            Err(e) => {
+                                let b = Banner(
+                                    format!(
+                                        "Failed to disconnect from {}: {}",
+                                        device.name,
+                                        e.to_string()
+                                    ),
+                                    BannerType::Failure,
+                                );
+                                self.set_new_banner(b).await;
+
+                                self.mode = BMMode::Browse;
+                            }
+                        }
+                    }
                 }
 
                 ui_state.banner = self.banner.clone();
-                terminal.draw(|f| draw_ui(f, &mut ui_state))?;
+                terminal.draw(|f| draw_ui(f, &mut ui_state, self.mode.clone()))?;
             } else {
                 break;
             }

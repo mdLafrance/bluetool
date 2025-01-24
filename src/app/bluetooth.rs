@@ -59,6 +59,10 @@ impl BTDevice {
         Ok(self.inner.connect().await?)
     }
 
+    pub async fn disconnect(&self) -> Result<()> {
+        Ok(self.inner.disconnect().await?)
+    }
+
     fn sort_value(&self) -> (i32, &str) {
         (
             self.connected as i32 * 2000 + self.paired as i32 * 1000,
