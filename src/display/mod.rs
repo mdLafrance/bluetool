@@ -1,3 +1,4 @@
+mod icons;
 mod table;
 mod ui;
 

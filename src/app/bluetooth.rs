@@ -7,6 +7,7 @@ use bluer::{
 };
 use futures::{pin_mut, stream::SelectAll, StreamExt};
 use std::{
+    cmp::Ordering,
     collections::HashSet,
     env,
     hash::{Hash, Hasher},
@@ -27,23 +28,35 @@ pub struct BTDevice {
 }
 
 impl BTDevice {
-    pub async fn new(device: Device) -> Self {
+    pub async fn new(device: &Device) -> Self {
         BTDevice {
             inner: device.clone(),
             name: device
                 .name()
                 .await
                 .unwrap_or(None)
-                .unwrap_or("".to_string()),
+                .unwrap_or("???".to_string()),
             icon_name: device
                 .icon()
                 .await
                 .unwrap_or(None)
                 .unwrap_or("".to_string()),
-            address: String::from_utf8(device.address().0.to_vec()).unwrap_or("ERR".to_string()),
+            address: device
+                .address()
+                .0
+                .to_vec()
+                .iter()
+                .map(|u| format!("{:02x}", u))
+                .collect::<Vec<String>>()
+                .join(":"),
+
             paired: device.is_paired().await.unwrap_or(false),
             connected: device.is_connected().await.unwrap_or(false),
         }
+    }
+
+    fn sort_value(&self) -> u8 {
+        self.connected as u8 * 2000 + self.paired as u8 * 1000
     }
 }
 
@@ -113,7 +126,7 @@ pub async fn launch_bluetooth_listener(
 
         pin_mut!(device_events);
 
-        // let mut all_change_events = SelectAll::new();
+        let mut all_change_events = SelectAll::new();
 
         loop {
             tokio::select! {
@@ -126,19 +139,23 @@ pub async fn launch_bluetooth_listener(
 
                             let device = adapter.device(addr).unwrap();
 
-                            event_send_chan.send(BMEvent::DeviceAdded(BTDevice::new(device).await)).await.unwrap();
+                            event_send_chan.send(BMEvent::DeviceAdded(BTDevice::new(&device).await)).await.unwrap();
+
+                            let change_events = device.events().await?.map(move |evt| (addr, evt));
+                            all_change_events.push(change_events);
                         },
                         AdapterEvent::DeviceRemoved(addr) => {
                             let device = adapter.device(addr).unwrap();
-                            event_send_chan.send(BMEvent::DeviceRemoved(BTDevice::new(device).await)).await.unwrap();
+                            event_send_chan.send(BMEvent::DeviceRemoved(BTDevice::new(&device).await)).await.unwrap();
                         }
                         _ => {},
                     }
                 }
-                // Some((addr, DeviceEvent::PropertyChanged(property))) = all_change_events.next() => {
-                //     println!("Device changed: {addr}");
-                //     println!("    {property:?}");
-                // }
+                Some((addr, DeviceEvent::PropertyChanged(property))) = all_change_events.next() => {
+                    let device = adapter.device(addr).unwrap();
+                    event_send_chan.send(BMEvent::DeviceModified(BTDevice::new(&device).await)).await.unwrap();
+
+                }
                 else => break
             }
         }
@@ -147,16 +164,37 @@ pub async fn launch_bluetooth_listener(
     })
 }
 
-impl PartialEq for BTDevice {
-    fn eq(&self, other: &Self) -> bool {
-        self.address == other.address
-    }
-}
-
 impl Eq for BTDevice {}
 
 impl Hash for BTDevice {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.address.hash(state)
+    }
+}
+
+impl Ord for BTDevice {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        let a = self.sort_value();
+        let b = other.sort_value();
+
+        if a < b {
+            Ordering::Less
+        } else if a > b {
+            Ordering::Greater
+        } else {
+            Ordering::Equal
+        }
+    }
+}
+
+impl PartialOrd for BTDevice {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl PartialEq for BTDevice {
+    fn eq(&self, other: &Self) -> bool {
+        self.address == other.address
     }
 }

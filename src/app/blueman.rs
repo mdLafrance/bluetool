@@ -85,6 +85,12 @@ impl BluemanApp {
                     BMEvent::DeviceAdded(device) => {
                         self.devices.as_ref().borrow_mut().insert(device);
                     }
+                    BMEvent::DeviceRemoved(device) => {
+                        self.devices.as_ref().borrow_mut().remove(&device);
+                    }
+                    BMEvent::DeviceModified(device) => {
+                        self.devices.as_ref().borrow_mut().replace(device);
+                    }
                     _ => continue,
                 };
 
