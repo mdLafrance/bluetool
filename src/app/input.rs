@@ -47,6 +47,12 @@ pub fn launch_key_listener(event_send_chan: Arc<Sender<BMEvent>>) -> JoinHandle<
                             .await
                             .unwrap();
                     }
+                    KeyCode::Char('h') => {
+                        event_send_chan
+                            .send(BMEvent::ShowHideUnnamed)
+                            .await
+                            .unwrap();
+                    }
                     _ => (),
                 },
                 _ => break 'event_loop,

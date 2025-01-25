@@ -31,29 +31,33 @@ pub fn draw_table(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
     let paired_text = Span::styled("Yes", Style::new().green());
     let empty = Span::raw("");
 
-    rows.extend(d.iter().map(|d: &BTDevice| {
-        let s = match d.connected {
-            true => Style::new(), // Style::new().on_blue(),
-            false => Style::new(),
-        };
+    rows.extend(
+        d.iter()
+            .filter(|d| (d.name != "???") || ui_state.show_unnamed)
+            .map(|d: &BTDevice| {
+                let s = match d.connected {
+                    true => Style::new(), // Style::new().on_blue(),
+                    false => Style::new(),
+                };
 
-        Row::new(vec![
-            Span::styled(get_icon_for_bt_type(&d.icon_name).to_owned(), s),
-            Span::styled(d.name.to_owned(), s),
-            if d.paired {
-                Span::styled("Yes", s.green())
-            } else {
-                Span::default()
-            },
-            if d.connected {
-                Span::styled("Yes", s.green())
-            } else {
-                Span::default()
-            },
-            Span::styled(d.icon_name.to_owned(), s.dark_gray()),
-            Span::styled(d.address.to_owned(), s.dark_gray()),
-        ])
-    }));
+                Row::new(vec![
+                    Span::styled(get_icon_for_bt_type(&d.icon_name).to_owned(), s),
+                    Span::styled(d.name.to_owned(), s),
+                    if d.paired {
+                        Span::styled("Yes", s.green())
+                    } else {
+                        Span::default()
+                    },
+                    if d.connected {
+                        Span::styled("Yes", s.green())
+                    } else {
+                        Span::default()
+                    },
+                    Span::styled(d.icon_name.to_owned(), s.dark_gray()),
+                    Span::styled(d.address.to_owned(), s.dark_gray()),
+                ])
+            }),
+    );
 
     // Define the table
     let table = Table::new(

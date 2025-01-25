@@ -18,22 +18,23 @@ use ratatui::{
     layout::{
         Constraint,
         Direction::{self, Horizontal},
-        Layout, Rect,
+        Layout, Margin, Rect,
     },
     style::{Color, Style, Stylize},
     text::{Line, Span},
-    widgets::{Block, Borders, Paragraph, TableState},
+    widgets::{Block, BorderType, Borders, Paragraph, TableState},
     Frame, Terminal,
 };
 
 use crate::app::{BMMode, BTDevice, Banner, BannerType};
 
-use super::table::draw_table;
+use super::{banner::draw_banner, table::draw_table};
 
 pub struct UIState {
     pub devices: Rc<RefCell<Vec<BTDevice>>>,
     pub banner: Option<Banner>,
     pub table_state: TableState,
+    pub show_unnamed: bool,
 }
 
 /// Setup the necessary components to make terminal ui calls.
@@ -51,20 +52,44 @@ pub fn shutdown_ui() -> Result<()> {
 }
 
 pub fn draw_ui(f: &mut Frame, ui_state: &mut UIState, mode: BMMode) {
+    let title = Line::from(vec![
+        Span::styled("", Style::new().blue()),
+        Span::styled(" Blueman 󰂯 ", Style::new().bold().white().on_blue()),
+        Span::styled("", Style::new().blue()),
+        Span::raw(" "),
+        Span::styled(
+            format!("v{}", env!("CARGO_PKG_VERSION")),
+            Style::new().dim(),
+        ),
+        Span::raw(" "),
+    ]);
+
+    let rect = Rect {
+        x: 2,
+        y: 0,
+        width: title.width() as u16,
+        height: 1,
+    };
+
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_type(BorderType::Rounded)
+        .border_style(Style::new().blue());
+
     let layout = Layout::default()
         .direction(Direction::Vertical)
-        .constraints(vec![
-            Constraint::Length(3),
-            Constraint::Percentage(99),
-            Constraint::Length(2),
-        ])
-        .split(f.area());
+        .constraints(vec![Constraint::Percentage(99), Constraint::Length(1)])
+        .vertical_margin(1)
+        .horizontal_margin(1)
+        .split(block.inner(f.area()));
 
-    let header_area = layout[0];
-    let table_area = layout[1];
-    let banner_area = layout[2];
+    f.render_widget(block, f.area());
+    f.render_widget(title, rect);
 
-    draw_header(f, header_area);
+    let table_area = layout[0];
+    let banner_area = layout[1];
+
+    // draw_header(f, header_area);
     draw_table(f, table_area, ui_state);
     draw_banner(f, banner_area, ui_state);
 
@@ -79,7 +104,10 @@ pub fn draw_ui(f: &mut Frame, ui_state: &mut UIState, mode: BMMode) {
 /// The header also contains current keybinds.
 fn draw_header(f: &mut Frame, area: Rect) {
     // Draw header bg and outer styling elements
-    let header_block = Block::default().borders(Borders::BOTTOM);
+    let header_block = Block::default()
+        .borders(Borders::BOTTOM)
+        .border_type(BorderType::Thick)
+        .style(Style::new().dark_gray());
 
     let header_area = header_block.inner(area);
 
@@ -106,26 +134,6 @@ fn draw_header(f: &mut Frame, area: Rect) {
     .alignment(ratatui::layout::Alignment::Left);
 
     f.render_widget(title, title_area);
-}
-
-fn draw_banner(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
-    if let Some(banner) = &mut ui_state.banner {
-        let banner_icon = match banner.1 {
-            BannerType::Success => " 󰂱 ",
-            BannerType::Failure => "  ",
-            BannerType::Status => "  ",
-        };
-
-        let banner_style = match banner.1 {
-            BannerType::Success => Style::new().black().on_green(),
-            BannerType::Failure => Style::new().white().on_red(),
-            BannerType::Status => Style::new().white().on_dark_gray(),
-        };
-
-        let s = Span::styled(format!("{}{}", banner_icon, banner.0.clone()), banner_style);
-
-        f.render_widget(s, area);
-    }
 }
 
 fn draw_try_connect_panel(f: &mut Frame, d: BTDevice) {

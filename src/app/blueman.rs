@@ -35,6 +35,7 @@ pub enum BMEvent {
     DisconnectRequested,
     DebugFailBanner,
     DebugSuccessBanner,
+    ShowHideUnnamed,
 }
 
 #[derive(Clone)]
@@ -86,6 +87,7 @@ impl BluemanApp {
             devices: self.devices.clone(),
             table_state: TableState::new(),
             banner: None,
+            show_unnamed: false,
         };
 
         defer! {
@@ -182,6 +184,10 @@ impl BluemanApp {
 
                                 self.mode = BMMode::TryDisconnect(device);
                             }
+                        }
+
+                        BMEvent::ShowHideUnnamed => {
+                            ui_state.show_unnamed = !ui_state.show_unnamed;
                         }
                         _ => {}
                     },
