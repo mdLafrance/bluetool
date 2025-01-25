@@ -41,6 +41,7 @@ pub enum BMEvent {
 pub enum BannerType {
     Success,
     Failure,
+    Status,
 }
 
 #[derive(Clone)]
@@ -185,63 +186,79 @@ impl BluemanApp {
                         _ => {}
                     },
                     BMMode::TryConnect(device) => {
-                        let res = device.connect().await;
+                        if device.connected {
+                            let b = Banner(
+                                format!("{} already connected", device.name),
+                                BannerType::Status,
+                            );
+                            self.set_new_banner(b).await;
+                            self.mode = BMMode::Browse;
+                            continue;
+                        } else {
+                            let res = device.connect().await;
 
-                        let b = Banner(format!("Connecting to"), BannerType::Success);
+                            match res {
+                                Ok(_) => {
+                                    let b = Banner(
+                                        format!("Successfully connected to {}", device.name),
+                                        BannerType::Success,
+                                    );
+                                    self.set_new_banner(b).await;
 
-                        match res {
-                            Ok(_) => {
-                                let b = Banner(
-                                    format!("Successfully connected to {}", device.name),
-                                    BannerType::Success,
-                                );
-                                self.set_new_banner(b).await;
+                                    self.mode = BMMode::Browse;
+                                }
+                                Err(e) => {
+                                    let b = Banner(
+                                        format!(
+                                            "Failed to connect to {}: {}",
+                                            device.name,
+                                            e.to_string()
+                                        ),
+                                        BannerType::Failure,
+                                    );
+                                    self.set_new_banner(b).await;
 
-                                self.mode = BMMode::Browse;
-                            }
-                            Err(e) => {
-                                let b = Banner(
-                                    format!(
-                                        "Failed to connect to {}: {}",
-                                        device.name,
-                                        e.to_string()
-                                    ),
-                                    BannerType::Failure,
-                                );
-                                self.set_new_banner(b).await;
-
-                                self.mode = BMMode::Browse;
+                                    self.mode = BMMode::Browse;
+                                }
                             }
                         }
                     }
 
                     BMMode::TryDisconnect(device) => {
-                        let res = device.disconnect().await;
+                        if !device.connected {
+                            let b = Banner(
+                                format!("{} is not connected", device.name),
+                                BannerType::Status,
+                            );
+                            self.set_new_banner(b).await;
+                            self.mode = BMMode::Browse;
+                            continue;
+                        } else {
+                            let res = device.disconnect().await;
 
-                        let b = Banner(format!("Disconnecting from"), BannerType::Success);
+                            match res {
+                                Ok(_) => {
+                                    let b = Banner(
+                                        format!("Successfully disconnected from {}", device.name),
+                                        BannerType::Success,
+                                    );
+                                    self.set_new_banner(b).await;
 
-                        match res {
-                            Ok(_) => {
-                                let b = Banner(
-                                    format!("Successfully disconnected from {}", device.name),
-                                    BannerType::Success,
-                                );
-                                self.set_new_banner(b).await;
+                                    self.mode = BMMode::Browse;
+                                }
+                                Err(e) => {
+                                    let b = Banner(
+                                        format!(
+                                            "Failed to disconnect from {}: {}",
+                                            device.name,
+                                            e.to_string()
+                                        ),
+                                        BannerType::Failure,
+                                    );
+                                    self.set_new_banner(b).await;
 
-                                self.mode = BMMode::Browse;
-                            }
-                            Err(e) => {
-                                let b = Banner(
-                                    format!(
-                                        "Failed to disconnect from {}: {}",
-                                        device.name,
-                                        e.to_string()
-                                    ),
-                                    BannerType::Failure,
-                                );
-                                self.set_new_banner(b).await;
-
-                                self.mode = BMMode::Browse;
+                                    self.mode = BMMode::Browse;
+                                }
                             }
                         }
                     }

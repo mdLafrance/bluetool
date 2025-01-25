@@ -113,11 +113,13 @@ fn draw_banner(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
         let banner_icon = match banner.1 {
             BannerType::Success => " 󰂱 ",
             BannerType::Failure => "  ",
+            BannerType::Status => "  ",
         };
 
         let banner_style = match banner.1 {
             BannerType::Success => Style::new().black().on_green(),
             BannerType::Failure => Style::new().white().on_red(),
+            BannerType::Status => Style::new().white().on_dark_gray(),
         };
 
         let s = Span::styled(format!("{}{}", banner_icon, banner.0.clone()), banner_style);
