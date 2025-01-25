@@ -1,8 +1,13 @@
 { pkgs ? import <nixpkgs> { } }:
 
+let
+toml = (builtins.fromTOML (builtins.readFile ./Cargo.toml));
+version = toml.package.version;
+pname = toml.package.name;
+in
 pkgs.rustPlatform.buildRustPackage rec {
-  pname = "blueman";
-  version = "0.1.0";
+  inherit pname;
+  inherit version;
 
   src = pkgs.lib.cleanSource ./.;
 
