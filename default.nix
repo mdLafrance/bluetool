@@ -1,9 +1,9 @@
 { pkgs ? import <nixpkgs> { } }:
 
 let
-toml = (builtins.fromTOML (builtins.readFile ./Cargo.toml));
-version = toml.package.version;
-pname = toml.package.name;
+  toml = (builtins.fromTOML (builtins.readFile ./Cargo.toml));
+  version = toml.package.version;
+  pname = toml.package.name;
 in
 pkgs.rustPlatform.buildRustPackage rec {
   inherit pname;
@@ -12,7 +12,7 @@ pkgs.rustPlatform.buildRustPackage rec {
   src = pkgs.lib.cleanSource ./.;
 
   buildInputs = [
-      pkgs.dbus
+    pkgs.dbus
   ];
 
   nativeBuildInputs = [
