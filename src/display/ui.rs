@@ -28,7 +28,12 @@ use ratatui::{
 
 use crate::app::{BMMode, BTDevice, Banner, BannerType};
 
-use super::{banner::draw_banner, table::draw_table};
+use super::{
+    banner::draw_banner,
+    controls::{draw_controls, draw_quit_hint},
+    header::draw_title,
+    table::draw_table,
+};
 
 pub struct UIState {
     pub devices: Rc<RefCell<Vec<BTDevice>>>,
@@ -89,51 +94,17 @@ pub fn draw_ui(f: &mut Frame, ui_state: &mut UIState, mode: BMMode) {
     let table_area = layout[0];
     let banner_area = layout[1];
 
-    // draw_header(f, header_area);
+    draw_title(f, f.area(), ui_state);
+    draw_quit_hint(f, f.area(), ui_state);
     draw_table(f, table_area, ui_state);
     draw_banner(f, banner_area, ui_state);
+    draw_controls(f, f.area(), ui_state);
 
     match mode {
         BMMode::TryConnect(d) => draw_try_connect_panel(f, d),
         BMMode::TryDisconnect(d) => draw_try_disconnect_panel(f, d),
         _ => {}
     }
-}
-
-/// The header contains a title, version information, and tab information.
-/// The header also contains current keybinds.
-fn draw_header(f: &mut Frame, area: Rect) {
-    // Draw header bg and outer styling elements
-    let header_block = Block::default()
-        .borders(Borders::BOTTOM)
-        .border_type(BorderType::Thick)
-        .style(Style::new().dark_gray());
-
-    let header_area = header_block.inner(area);
-
-    f.render_widget(header_block, area);
-
-    // Split layout
-    let l = Layout::default()
-        .direction(Horizontal)
-        .constraints(vec![Constraint::Percentage(50), Constraint::Length(5)])
-        .split(header_area);
-
-    let (title_area, hints_area) = (l[0], l[1]);
-
-    let title = Paragraph::new(vec![Line::from(vec![
-        Span::styled("", Style::new().blue()),
-        Span::styled(" Blueman 󰂯 ", Style::new().bold().white().on_blue()),
-        Span::styled("", Style::new().blue()),
-        Span::raw(" "),
-        Span::styled(
-            format!("v{}", env!("CARGO_PKG_VERSION")),
-            Style::new().dim(),
-        ),
-    ])])
-    .alignment(ratatui::layout::Alignment::Left);
-
-    f.render_widget(title, title_area);
 }
 
 fn draw_try_connect_panel(f: &mut Frame, d: BTDevice) {

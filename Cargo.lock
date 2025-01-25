@@ -116,6 +116,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f68f53c83ab957f72c32642f3868eec03eb974d1fb82e453128456482613d36"
 
 [[package]]
+name = "blueman"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bluer",
+ "color-eyre",
+ "crossterm",
+ "env_logger",
+ "futures",
+ "parking_lot",
+ "ratatui",
+ "scopeguard",
+ "tokio",
+ "tokio-util",
+]
+
+[[package]]
 name = "bluer"
 version = "0.17.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -142,23 +159,6 @@ dependencies = [
  "tokio",
  "tokio-stream",
  "uuid",
-]
-
-[[package]]
-name = "btctl"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bluer",
- "color-eyre",
- "crossterm",
- "env_logger",
- "futures",
- "parking_lot",
- "ratatui",
- "scopeguard",
- "tokio",
- "tokio-util",
 ]
 
 [[package]]

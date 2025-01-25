@@ -13,20 +13,16 @@ use crate::app::BTDevice;
 use super::{icons::get_icon_for_bt_type, UIState};
 
 pub fn draw_table(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
-    // Create a block for the table
-    let block = Block::default().title(" Devices ");
-
     let d = ui_state.devices.as_ref().borrow(); // Thank u borrow checker :pray:
 
+    let table_header_style = Style::new().bold().dark_gray();
+
     // Define table rows
-    let mut rows = vec![Row::new(vec![
-        "",
-        "Name",
-        "Paired",
-        "Connected",
-        "Type",
-        "MAC Address",
-    ])];
+    let mut rows = vec![Row::new(
+        vec![" ", "Name", "Paired", "Connected", "Type", "MAC Address"]
+            .iter()
+            .map(|t| Span::styled(*t, table_header_style)),
+    )];
 
     let paired_text = Span::styled("Yes", Style::new().green());
     let empty = Span::raw("");
@@ -41,7 +37,7 @@ pub fn draw_table(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
                 };
 
                 Row::new(vec![
-                    Span::styled(get_icon_for_bt_type(&d.icon_name).to_owned(), s),
+                    Span::styled(get_icon_for_bt_type(&d.icon_name).to_owned() + " ", s),
                     Span::styled(d.name.to_owned(), s),
                     if d.paired {
                         Span::styled("Yes", s.green())
@@ -63,7 +59,7 @@ pub fn draw_table(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
     let table = Table::new(
         rows,
         vec![
-            Constraint::Percentage(2),
+            Constraint::Length(2),
             Constraint::Percentage(99),
             Constraint::Length(10),
             Constraint::Length(10),
@@ -71,7 +67,6 @@ pub fn draw_table(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
             Constraint::Length(20),
         ],
     )
-    .block(block)
     .column_spacing(1)
     .row_highlight_style(Style::new().add_modifier(Modifier::REVERSED));
 
