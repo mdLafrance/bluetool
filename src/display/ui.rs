@@ -58,25 +58,6 @@ pub fn shutdown_ui() -> Result<()> {
 }
 
 pub fn draw_ui(f: &mut Frame, ui_state: &mut UIState, mode: BMMode) {
-    let title = Line::from(vec![
-        Span::styled("", Style::new().fg(BMColors::BLUE)),
-        Span::styled(" Blueman 󰂯 ", Style::new().bold().white().on_blue()),
-        Span::styled("", Style::new().fg(BMColors::BLUE)),
-        Span::raw(" "),
-        Span::styled(
-            format!("v{}", env!("CARGO_PKG_VERSION")),
-            Style::new().dim(),
-        ),
-        Span::raw(" "),
-    ]);
-
-    let rect = Rect {
-        x: 2,
-        y: 0,
-        width: title.width() as u16,
-        height: 1,
-    };
-
     let block = Block::default()
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded)
@@ -90,7 +71,6 @@ pub fn draw_ui(f: &mut Frame, ui_state: &mut UIState, mode: BMMode) {
         .split(block.inner(f.area()));
 
     f.render_widget(block, f.area());
-    f.render_widget(title, rect);
 
     let table_area = layout[0];
     let banner_area = layout[1];
@@ -112,7 +92,7 @@ fn draw_try_connect_panel(f: &mut Frame, d: BTDevice) {
     let area = f.area();
 
     let block_width = 60;
-    let block_height = 5;
+    let block_height = 3;
 
     let x = (area.width.saturating_sub(block_width)) / 2;
     let y = (area.height.saturating_sub(block_height)) / 2;
@@ -122,12 +102,10 @@ fn draw_try_connect_panel(f: &mut Frame, d: BTDevice) {
 
     // Create a block with borders and a title.
     let block = Block::default()
-        .title("Centered Block")
         .borders(Borders::ALL)
         .style(Style::default().fg(Color::White).bg(Color::Blue));
 
-    let dots = ".".repeat(get_anim_frame() % 3).to_string();
-    let span = Span::styled(format!("Connecting to {}{}", d.name, dots), Style::new());
+    let span = Span::styled(format!("Connecting to {}", d.name), Style::new());
 
     let p = Paragraph::new(span).block(block);
 

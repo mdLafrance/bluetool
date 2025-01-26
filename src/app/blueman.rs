@@ -281,10 +281,15 @@ impl BluemanApp {
     async fn set_new_banner(&mut self, b: Banner) {
         let chan = self.get_event_chan_handle();
 
+        let duration = match b.1 {
+            BannerType::Failure => Duration::from_secs(4),
+            _ => Duration::from_secs(2),
+        };
+
         self.banner = Some(b.clone());
 
         tokio::spawn(async move {
-            sleep(Duration::from_millis(3000)).await;
+            sleep(duration).await;
             chan.send(BMEvent::BannerExpired(b.0)).await.unwrap();
         });
     }
