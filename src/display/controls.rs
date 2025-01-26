@@ -10,16 +10,16 @@ use super::{colors::BMColors, UIState};
 pub fn draw_controls(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
     let controls = Line::from(vec![
         Span::styled("┤ ", Style::new().fg(BMColors::BLUE)),
-        Span::styled("[jk] ", Style::new().bold().dark_gray()),
-        Span::styled("select", Style::new().dark_gray()),
+        Span::styled("[jk] ", Style::new().bold().fg(BMColors::GRAY)),
+        Span::styled("select", Style::new().fg(BMColors::DARK_GRAY)),
         Span::styled(" | ", Style::new().fg(BMColors::BLUE)),
-        Span::styled("[c] ", Style::new().bold().dark_gray()),
-        Span::styled("connect", Style::new().dark_gray()),
+        Span::styled("[c] ", Style::new().bold().fg(BMColors::GRAY)),
+        Span::styled("connect", Style::new().fg(BMColors::DARK_GRAY)),
         Span::styled(" | ", Style::new().fg(BMColors::BLUE)),
-        Span::styled("[d] ", Style::new().bold().dark_gray()),
-        Span::styled("disconnect", Style::new().dark_gray()),
+        Span::styled("[d] ", Style::new().bold().fg(BMColors::GRAY)),
+        Span::styled("disconnect", Style::new().fg(BMColors::DARK_GRAY)),
         Span::styled(" | ", Style::new().fg(BMColors::BLUE)),
-        Span::styled("[h] ", Style::new().bold().dark_gray()),
+        Span::styled("[h] ", Style::new().bold().fg(BMColors::GRAY)),
         Span::styled(
             format!(
                 "{} unnamed",
@@ -29,7 +29,7 @@ pub fn draw_controls(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
                     "show"
                 }
             ),
-            Style::new().dark_gray(),
+            Style::new().fg(BMColors::DARK_GRAY),
         ),
         Span::styled(" ├", Style::new().fg(BMColors::BLUE)),
     ]);
@@ -47,8 +47,8 @@ pub fn draw_controls(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
 pub fn draw_quit_hint(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
     let quit_hint = Line::from(vec![
         Span::styled("┤ ", Style::new().fg(BMColors::BLUE)),
-        Span::styled("[q] ", Style::new().bold().dark_gray()),
-        Span::styled("quit", Style::new().dark_gray()),
+        Span::styled("[q] ", Style::new().bold().fg(BMColors::GRAY)),
+        Span::styled("quit", Style::new().fg(BMColors::DARK_GRAY)),
         Span::styled(" ├", Style::new().fg(BMColors::BLUE)),
     ]);
 
