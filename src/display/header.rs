@@ -5,13 +5,16 @@ use ratatui::{
     Frame,
 };
 
-use super::UIState;
+use super::{colors::BMColors, UIState};
 
 pub fn draw_title(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
     let title = Line::from(vec![
-        Span::styled("", Style::new().blue()),
-        Span::styled(" Blueman 󰂯 ", Style::new().bold().white().on_blue()),
-        Span::styled("", Style::new().blue()),
+        Span::styled("", Style::new().fg(BMColors::BLUE)),
+        Span::styled(
+            " Blueman 󰂯 ",
+            Style::new().bold().white().bg(BMColors::BLUE),
+        ),
+        Span::styled("", Style::new().fg(BMColors::BLUE)),
         Span::raw(" "),
         Span::styled(
             format!("v{}", env!("CARGO_PKG_VERSION")),

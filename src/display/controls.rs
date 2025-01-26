@@ -5,20 +5,20 @@ use ratatui::{
     Frame,
 };
 
-use super::UIState;
+use super::{colors::BMColors, UIState};
 
 pub fn draw_controls(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
     let controls = Line::from(vec![
-        Span::styled("┤ ", Style::new().blue()),
+        Span::styled("┤ ", Style::new().fg(BMColors::BLUE)),
         Span::styled("[jk] ", Style::new().bold().dark_gray()),
         Span::styled("select", Style::new().dark_gray()),
-        Span::styled(" | ", Style::new().blue()),
+        Span::styled(" | ", Style::new().fg(BMColors::BLUE)),
         Span::styled("[c] ", Style::new().bold().dark_gray()),
         Span::styled("connect", Style::new().dark_gray()),
-        Span::styled(" | ", Style::new().blue()),
+        Span::styled(" | ", Style::new().fg(BMColors::BLUE)),
         Span::styled("[d] ", Style::new().bold().dark_gray()),
         Span::styled("disconnect", Style::new().dark_gray()),
-        Span::styled(" | ", Style::new().blue()),
+        Span::styled(" | ", Style::new().fg(BMColors::BLUE)),
         Span::styled("[h] ", Style::new().bold().dark_gray()),
         Span::styled(
             format!(
@@ -31,7 +31,7 @@ pub fn draw_controls(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
             ),
             Style::new().dark_gray(),
         ),
-        Span::styled(" ├", Style::new().blue()),
+        Span::styled(" ├", Style::new().fg(BMColors::BLUE)),
     ]);
 
     let rect = Rect {
@@ -46,10 +46,10 @@ pub fn draw_controls(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
 
 pub fn draw_quit_hint(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
     let quit_hint = Line::from(vec![
-        Span::styled("┤ ", Style::new().blue()),
+        Span::styled("┤ ", Style::new().fg(BMColors::BLUE)),
         Span::styled("[q] ", Style::new().bold().dark_gray()),
         Span::styled("quit", Style::new().dark_gray()),
-        Span::styled(" ├", Style::new().blue()),
+        Span::styled(" ├", Style::new().fg(BMColors::BLUE)),
     ]);
 
     let x = area.width as u16 - 2 - quit_hint.width() as u16;

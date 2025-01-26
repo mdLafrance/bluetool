@@ -4,6 +4,7 @@ pub fn get_icon_for_bt_type(bt_type: &str) -> &'static str {
         "audio-headset" => " ",
         "input-keyboard" => " ",
         "audio-card" => "󱀞 ",
+        "computer" => " ",
         _ => " ",
     }
 }

@@ -1,5 +1,3 @@
-use std::borrow::{Borrow, BorrowMut};
-
 use ratatui::{
     layout::{Constraint, Rect},
     style::{Color, Modifier, Style, Stylize},
@@ -10,7 +8,7 @@ use ratatui::{
 
 use crate::app::BTDevice;
 
-use super::{icons::get_icon_for_bt_type, UIState};
+use super::{colors::BMColors, icons::get_icon_for_bt_type, UIState};
 
 pub fn draw_table(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
     let d = ui_state.devices.as_ref().borrow(); // Thank u borrow checker :pray:
@@ -19,13 +17,18 @@ pub fn draw_table(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
 
     // Define table rows
     let mut rows = vec![Row::new(
-        vec![" ", "Name", "Paired", "Connected", "Type", "MAC Address"]
-            .iter()
-            .map(|t| Span::styled(*t, table_header_style)),
+        vec![
+            " ",
+            "Name",
+            "Paired",
+            "Connected",
+            "Battery",
+            "Type",
+            "MAC Address",
+        ]
+        .iter()
+        .map(|t| Span::styled(*t, table_header_style)),
     )];
-
-    let paired_text = Span::styled("Yes", Style::new().green());
-    let empty = Span::raw("");
 
     rows.extend(
         d.iter()
@@ -49,6 +52,7 @@ pub fn draw_table(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
                     } else {
                         Span::default()
                     },
+                    format_battery_span(d.battery),
                     Span::styled(d.icon_name.to_owned(), s.dark_gray()),
                     Span::styled(d.address.to_owned(), s.dark_gray()),
                 ])
@@ -63,6 +67,7 @@ pub fn draw_table(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
             Constraint::Percentage(99),
             Constraint::Length(10),
             Constraint::Length(10),
+            Constraint::Length(10),
             Constraint::Length(18),
             Constraint::Length(20),
         ],
@@ -71,4 +76,19 @@ pub fn draw_table(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
     .row_highlight_style(Style::new().add_modifier(Modifier::REVERSED));
 
     f.render_stateful_widget(table, area, &mut ui_state.table_state);
+}
+
+fn format_battery_span(battery: Option<u8>) -> Span<'static> {
+    if let Some(b) = battery {
+        match b {
+            0..10 => Span::styled(" ", Style::new().fg(BMColors::RED)),
+            10..40 => Span::styled(" ", Style::new().fg(BMColors::ORANGE)),
+            40..60 => Span::styled(" ", Style::new().fg(BMColors::YELLOW)),
+            70..90 => Span::styled(" ", Style::new().fg(BMColors::GREEN)),
+            90.. => Span::styled(" ", Style::new().fg(BMColors::GREEN)),
+            _ => unreachable!(),
+        }
+    } else {
+        Span::raw("")
+    }
 }

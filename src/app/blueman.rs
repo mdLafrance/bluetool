@@ -30,7 +30,6 @@ pub enum BMEvent {
     DeviceRemoved(BTDevice),
     DeviceModified(BTDevice),
     BannerExpired(String),
-    SwitchToMode(BMMode),
     ConnectRequested,
     DisconnectRequested,
     DebugFailBanner,
@@ -106,10 +105,6 @@ impl BluemanApp {
                 // Process mode-independent events
                 match &e {
                     BMEvent::Exit => break,
-                    BMEvent::SwitchToMode(m) => {
-                        self.mode = m.clone();
-                        continue;
-                    }
                     BMEvent::BannerExpired(msg) => {
                         if let Some(current_banner) = &mut self.banner {
                             if &current_banner.0 == msg {

@@ -1,4 +1,5 @@
 mod banner;
+mod colors;
 mod controls;
 mod header;
 mod icons;

@@ -30,6 +30,7 @@ use crate::app::{BMMode, BTDevice, Banner, BannerType};
 
 use super::{
     banner::draw_banner,
+    colors::BMColors,
     controls::{draw_controls, draw_quit_hint},
     header::draw_title,
     table::draw_table,
@@ -58,9 +59,9 @@ pub fn shutdown_ui() -> Result<()> {
 
 pub fn draw_ui(f: &mut Frame, ui_state: &mut UIState, mode: BMMode) {
     let title = Line::from(vec![
-        Span::styled("", Style::new().blue()),
+        Span::styled("", Style::new().fg(BMColors::BLUE)),
         Span::styled(" Blueman 󰂯 ", Style::new().bold().white().on_blue()),
-        Span::styled("", Style::new().blue()),
+        Span::styled("", Style::new().fg(BMColors::BLUE)),
         Span::raw(" "),
         Span::styled(
             format!("v{}", env!("CARGO_PKG_VERSION")),
@@ -79,7 +80,7 @@ pub fn draw_ui(f: &mut Frame, ui_state: &mut UIState, mode: BMMode) {
     let block = Block::default()
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded)
-        .border_style(Style::new().blue());
+        .border_style(Style::new().fg(BMColors::BLUE));
 
     let layout = Layout::default()
         .direction(Direction::Vertical)
