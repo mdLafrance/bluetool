@@ -1,16 +1,11 @@
-use std::{borrow::BorrowMut, cell::RefCell, error::Error, rc::Rc, sync::Arc, thread::current};
+use std::{cell::RefCell, rc::Rc, sync::Arc};
 
 use anyhow::Result;
-use bluer::Device;
-use color_eyre::owo_colors::OwoColorize;
-use crossterm::event::{Event, EventStream, KeyCode};
-use futures::StreamExt;
 use ratatui::widgets::TableState;
 use scopeguard::defer;
 use tokio::{
     sync::mpsc::{channel, Receiver, Sender},
-    task::JoinHandle,
-    time::{self, sleep, Duration, Sleep},
+    time::{sleep, Duration},
 };
 
 use crate::{

@@ -1,13 +1,11 @@
 use std::{
     cell::RefCell,
-    error::Error,
     io::{stdout, Stdout},
     rc::Rc,
     time::{SystemTime, UNIX_EPOCH},
 };
 
 use anyhow::Result;
-use bluer::Device;
 use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
@@ -17,16 +15,16 @@ use ratatui::{
     backend::CrosstermBackend,
     layout::{
         Constraint,
-        Direction::{self, Horizontal},
-        Layout, Margin, Rect,
+        Direction::{self},
+        Layout, Rect,
     },
-    style::{Color, Style, Stylize},
-    text::{Line, Span},
+    style::{Color, Style},
+    text::Span,
     widgets::{Block, BorderType, Borders, Paragraph, TableState},
     Frame, Terminal,
 };
 
-use crate::app::{BMMode, BTDevice, Banner, BannerType};
+use crate::app::{BMMode, BTDevice, Banner};
 
 use super::{
     banner::draw_banner,

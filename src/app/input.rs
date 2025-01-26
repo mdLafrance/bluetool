@@ -10,7 +10,7 @@ pub fn launch_key_listener(event_send_chan: Arc<Sender<BMEvent>>) -> JoinHandle<
     let mut event_stream = EventStream::new();
 
     tokio::spawn(async move {
-        'event_loop: loop {
+        loop {
             match event_stream.next().await {
                 Some(Ok(Event::Key(evnt))) => match evnt.code {
                     // Quit key

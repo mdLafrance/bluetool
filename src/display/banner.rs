@@ -1,11 +1,7 @@
 use ratatui::{
     layout::Rect,
     style::{Style, Stylize},
-    text::Span,
-    widgets::{
-        block::{self, BorderType},
-        Block, Borders, Paragraph,
-    },
+    widgets::Paragraph,
     Frame,
 };
 

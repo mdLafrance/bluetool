@@ -1,10 +1,7 @@
 //! Discover Bluetooth devices and list them.
 
 use anyhow::Result;
-use bluer::{
-    Adapter, AdapterEvent, Address, Device, DeviceEvent, DeviceProperty, DiscoveryFilter,
-    DiscoveryTransport,
-};
+use bluer::{AdapterEvent, Address, Device, DeviceEvent, DiscoveryFilter, DiscoveryTransport};
 use futures::{pin_mut, stream::SelectAll, StreamExt};
 use std::{
     cmp::Ordering,
@@ -110,8 +107,8 @@ pub async fn launch_bluetooth_listener(
     event_send_chan: Arc<Sender<BMEvent>>,
 ) -> JoinHandle<Result<()>> {
     tokio::spawn(async move {
-        let with_changes = env::args().any(|arg| arg == "--changes");
-        let all_properties = env::args().any(|arg| arg == "--all-properties");
+        // let with_changes = env::args().any(|arg| arg == "--changes");
+        // let all_properties = env::args().any(|arg| arg == "--all-properties");
         let le_only = env::args().any(|arg| arg == "--le");
         let br_edr_only = env::args().any(|arg| arg == "--bredr");
         let filter_addr: HashSet<_> = env::args()
@@ -164,7 +161,7 @@ pub async fn launch_bluetooth_listener(
                         _ => {},
                     }
                 }
-                Some((addr, DeviceEvent::PropertyChanged(property))) = all_change_events.next() => {
+                Some((addr, DeviceEvent::PropertyChanged(_))) = all_change_events.next() => {
                     let device = adapter.device(addr).unwrap();
                     event_send_chan.send(BMEvent::DeviceModified(BTDevice::new(&device).await)).await.unwrap();
 

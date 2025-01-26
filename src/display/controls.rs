@@ -44,7 +44,7 @@ pub fn draw_controls(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
     f.render_widget(controls, rect);
 }
 
-pub fn draw_quit_hint(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
+pub fn draw_quit_hint(f: &mut Frame, area: Rect, _: &mut UIState) {
     let quit_hint = Line::from(vec![
         Span::styled("┤ ", Style::new().fg(BMColors::BLUE)),
         Span::styled("[q] ", Style::new().bold().fg(BMColors::GRAY)),
