@@ -26,7 +26,9 @@ pub enum BMEvent {
     DeviceModified(BTDevice),
     BannerExpired(String),
     ConnectRequested,
+    PairRequested,
     DisconnectRequested,
+    RemoveRequested,
     DebugFailBanner,
     DebugSuccessBanner,
     ShowHideUnnamed,
@@ -46,7 +48,9 @@ pub struct Banner(pub String, pub BannerType);
 pub enum BMMode {
     Browse,
     TryConnect(BTDevice),
+    TryPair(BTDevice),
     TryDisconnect(BTDevice),
+    TryRemove(BTDevice),
 }
 
 pub struct BluemanApp {
@@ -167,12 +171,28 @@ impl BluemanApp {
                                 self.mode = BMMode::TryConnect(device);
                             }
                         }
+                        BMEvent::PairRequested => {
+                            // Find which device we're highlighting
+                            if let Some(idx) = ui_state.table_state.selected() {
+                                let device = self.devices.as_ref().borrow()[idx - 1].clone();
+
+                                self.mode = BMMode::TryPair(device);
+                            }
+                        }
                         BMEvent::DisconnectRequested => {
                             // Find which device we're highlighting
                             if let Some(idx) = ui_state.table_state.selected() {
                                 let device = self.devices.as_ref().borrow()[idx - 1].clone();
 
                                 self.mode = BMMode::TryDisconnect(device);
+                            }
+                        }
+                        BMEvent::RemoveRequested => {
+                            // Find which device we're highlighting
+                            if let Some(idx) = ui_state.table_state.selected() {
+                                let device = self.devices.as_ref().borrow()[idx - 1].clone();
+
+                                self.mode = BMMode::TryRemove(device);
                             }
                         }
 
@@ -220,6 +240,45 @@ impl BluemanApp {
                         }
                     }
 
+                    BMMode::TryPair(device) => {
+                        if device.paired {
+                            let b = Banner(
+                                format!("{} already paired", device.name),
+                                BannerType::Status,
+                            );
+                            self.set_new_banner(b).await;
+                            self.mode = BMMode::Browse;
+                            continue;
+                        } else {
+                            let res = device.pair().await;
+
+                            match res {
+                                Ok(_) => {
+                                    let b = Banner(
+                                        format!("Successfully paired with {}", device.name),
+                                        BannerType::Success,
+                                    );
+                                    self.set_new_banner(b).await;
+
+                                    self.mode = BMMode::Browse;
+                                }
+                                Err(e) => {
+                                    let b = Banner(
+                                        format!(
+                                            "Failed to pair with {}: {}",
+                                            device.name,
+                                            e.to_string()
+                                        ),
+                                        BannerType::Failure,
+                                    );
+                                    self.set_new_banner(b).await;
+
+                                    self.mode = BMMode::Browse;
+                                }
+                            }
+                        }
+                    }
+
                     BMMode::TryDisconnect(device) => {
                         if !device.connected {
                             let b = Banner(
@@ -246,6 +305,45 @@ impl BluemanApp {
                                     let b = Banner(
                                         format!(
                                             "Failed to disconnect from {}: {}",
+                                            device.name,
+                                            e.to_string()
+                                        ),
+                                        BannerType::Failure,
+                                    );
+                                    self.set_new_banner(b).await;
+
+                                    self.mode = BMMode::Browse;
+                                }
+                            }
+                        }
+                    }
+
+                    BMMode::TryRemove(device) => {
+                        if !device.paired {
+                            let b = Banner(
+                                format!("{} is not paired", device.name),
+                                BannerType::Status,
+                            );
+                            self.set_new_banner(b).await;
+                            self.mode = BMMode::Browse;
+                            continue;
+                        } else {
+                            let res = device.remove().await;
+
+                            match res {
+                                Ok(_) => {
+                                    let b = Banner(
+                                        format!("Successfully removed device {}", device.name),
+                                        BannerType::Success,
+                                    );
+                                    self.set_new_banner(b).await;
+
+                                    self.mode = BMMode::Browse;
+                                }
+                                Err(e) => {
+                                    let b = Banner(
+                                        format!(
+                                            "Failed to remove device {}: {}",
                                             device.name,
                                             e.to_string()
                                         ),

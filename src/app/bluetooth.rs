@@ -1,7 +1,9 @@
 //! Discover Bluetooth devices and list them.
 
 use anyhow::Result;
-use bluer::{AdapterEvent, Address, Device, DeviceEvent, DiscoveryFilter, DiscoveryTransport};
+use bluer::{
+    Adapter, AdapterEvent, Address, Device, DeviceEvent, DiscoveryFilter, DiscoveryTransport,
+};
 use futures::{pin_mut, stream::SelectAll, StreamExt};
 use std::{
     cmp::Ordering,
@@ -50,7 +52,7 @@ impl BTDevice {
 
             paired: device.is_paired().await.unwrap_or(false),
             connected: device.is_connected().await.unwrap_or(false),
-            battery: device.battery_percentage().await.unwrap_or(None),
+            battery: device.tx_power().await.unwrap_or(None).map(|p| p as u8),
         }
     }
 
@@ -58,8 +60,18 @@ impl BTDevice {
         Ok(self.inner.connect().await?)
     }
 
+    pub async fn pair(&self) -> Result<()> {
+        Ok(self.inner.pair().await?)
+    }
+
     pub async fn disconnect(&self) -> Result<()> {
         Ok(self.inner.disconnect().await?)
+    }
+
+    pub async fn remove(&self) -> Result<()> {
+        let session = bluer::Session::new().await?;
+        let adapter = session.default_adapter().await?;
+        Ok(adapter.remove_device(self.inner.address()).await?)
     }
 
     fn sort_value(&self) -> (i32, &str) {
