@@ -15,7 +15,7 @@ pkgdesc {
 pkgrel=1
 
 arch=('x86_64')
-url="https://github.com/mdlafrance/blueman"
+url="https://github.com/mdlafrance/btui"
 license=('MIT' or 'GPL')
 makedepends=('cargo rust dbus')
 source=("$pkgname-$pkgver.tar.gz::$url/archive/v$pkgver.tar.gz")

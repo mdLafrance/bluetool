@@ -14,7 +14,7 @@ use std::{
 };
 use tokio::{sync::mpsc::Sender, task::JoinHandle};
 
-use super::blueman::BMEvent;
+use super::btui::AppEvent;
 
 #[derive(Debug, Clone)]
 pub struct BTDevice {
@@ -116,7 +116,7 @@ impl BTDevice {
 // }
 
 pub async fn launch_bluetooth_listener(
-    event_send_chan: Arc<Sender<BMEvent>>,
+    event_send_chan: Arc<Sender<AppEvent>>,
 ) -> JoinHandle<Result<()>> {
     tokio::spawn(async move {
         // let with_changes = env::args().any(|arg| arg == "--changes");
@@ -161,21 +161,21 @@ pub async fn launch_bluetooth_listener(
 
                             let device = adapter.device(addr).unwrap();
 
-                            event_send_chan.send(BMEvent::DeviceAdded(BTDevice::new(&device).await)).await.unwrap();
+                            event_send_chan.send(AppEvent::DeviceAdded(BTDevice::new(&device).await)).await.unwrap();
 
                             let change_events = device.events().await?.map(move |evt| (addr, evt));
                             all_change_events.push(change_events);
                         },
                         AdapterEvent::DeviceRemoved(addr) => {
                             let device = adapter.device(addr).unwrap();
-                            event_send_chan.send(BMEvent::DeviceRemoved(BTDevice::new(&device).await)).await.unwrap();
+                            event_send_chan.send(AppEvent::DeviceRemoved(BTDevice::new(&device).await)).await.unwrap();
                         }
                         _ => {},
                     }
                 }
                 Some((addr, DeviceEvent::PropertyChanged(_))) = all_change_events.next() => {
                     let device = adapter.device(addr).unwrap();
-                    event_send_chan.send(BMEvent::DeviceModified(BTDevice::new(&device).await)).await.unwrap();
+                    event_send_chan.send(AppEvent::DeviceModified(BTDevice::new(&device).await)).await.unwrap();
 
                 }
                 else => break

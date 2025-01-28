@@ -16,7 +16,7 @@ use crate::{
 use super::bluetooth::BTDevice;
 
 #[derive(Debug)]
-pub enum BMEvent {
+pub enum AppEvent {
     Pass,
     Exit,
     ScrollDown,
@@ -45,7 +45,7 @@ pub enum BannerType {
 pub struct Banner(pub String, pub BannerType);
 
 #[derive(Debug, Clone)]
-pub enum BMMode {
+pub enum AppMode {
     Browse,
     TryConnect(BTDevice),
     TryPair(BTDevice),
@@ -53,29 +53,29 @@ pub enum BMMode {
     TryRemove(BTDevice),
 }
 
-pub struct BluemanApp {
+pub struct BTUIApp {
     devices: Rc<RefCell<Vec<BTDevice>>>,
-    event_recv_chan: Receiver<BMEvent>,
-    event_send_chan: Arc<Sender<BMEvent>>,
-    mode: BMMode,
+    event_recv_chan: Receiver<AppEvent>,
+    event_send_chan: Arc<Sender<AppEvent>>,
+    mode: AppMode,
     banner: Option<Banner>,
 }
 
-impl BluemanApp {
+impl BTUIApp {
     /// Instantiate an instance of the app object
     pub fn new() -> Self {
         let (send, recv) = channel(128);
-        BluemanApp {
+        BTUIApp {
             devices: Rc::new(RefCell::new(Vec::with_capacity(64))),
             event_recv_chan: recv,
             event_send_chan: Arc::new(send),
-            mode: BMMode::Browse,
+            mode: AppMode::Browse,
             banner: None,
         }
     }
 
     /// Get a new handle to the event send bus
-    pub fn get_event_chan_handle(&self) -> Arc<Sender<BMEvent>> {
+    pub fn get_event_chan_handle(&self) -> Arc<Sender<AppEvent>> {
         self.event_send_chan.clone()
     }
 
@@ -96,29 +96,29 @@ impl BluemanApp {
         let bluetooth_listener = launch_bluetooth_listener(self.get_event_chan_handle()).await;
 
         // NOTE: Send one dummy event so we trigger a draw
-        self.event_send_chan.send(BMEvent::Pass).await?;
+        self.event_send_chan.send(AppEvent::Pass).await?;
 
         // Main loop, listen for events and draw ui
         loop {
             if let Some(e) = self.event_recv_chan.recv().await {
                 // Process mode-independent events
                 match &e {
-                    BMEvent::Exit => break,
-                    BMEvent::BannerExpired(msg) => {
+                    AppEvent::Exit => break,
+                    AppEvent::BannerExpired(msg) => {
                         if let Some(current_banner) = &mut self.banner {
                             if &current_banner.0 == msg {
                                 self.banner = None;
                             }
                         }
                     }
-                    BMEvent::DebugFailBanner => {
+                    AppEvent::DebugFailBanner => {
                         self.set_new_banner(Banner(
                             "Failure message!".to_owned(),
                             BannerType::Failure,
                         ))
                         .await
                     }
-                    BMEvent::DebugSuccessBanner => {
+                    AppEvent::DebugSuccessBanner => {
                         self.set_new_banner(Banner(
                             "Success message!".to_owned(),
                             BannerType::Success,
@@ -129,18 +129,18 @@ impl BluemanApp {
                 };
 
                 match &self.mode {
-                    BMMode::Browse => match e {
-                        BMEvent::Exit => break,
-                        BMEvent::ScrollUp => match ui_state.table_state.selected() {
+                    AppMode::Browse => match e {
+                        AppEvent::Exit => break,
+                        AppEvent::ScrollUp => match ui_state.table_state.selected() {
                             Some(1) => *ui_state.table_state.selected_mut() = None,
                             Some(idx) => *ui_state.table_state.selected_mut() = Some(idx - 1),
                             _ => {}
                         },
-                        BMEvent::ScrollDown => match ui_state.table_state.selected() {
+                        AppEvent::ScrollDown => match ui_state.table_state.selected() {
                             None => *ui_state.table_state.selected_mut() = Some(1),
                             Some(idx) => *ui_state.table_state.selected_mut() = Some(idx + 1),
                         },
-                        BMEvent::DeviceAdded(device) => {
+                        AppEvent::DeviceAdded(device) => {
                             let mut devices = self.devices.as_ref().borrow_mut();
 
                             if !devices.contains(&device) {
@@ -149,11 +149,11 @@ impl BluemanApp {
 
                             devices.sort_by(|a, b| b.cmp(a));
                         }
-                        BMEvent::DeviceRemoved(device) => {
+                        AppEvent::DeviceRemoved(device) => {
                             let mut devices = self.devices.as_ref().borrow_mut();
                             devices.retain(|d| d != &device);
                         }
-                        BMEvent::DeviceModified(device) => {
+                        AppEvent::DeviceModified(device) => {
                             let mut devices = self.devices.as_ref().borrow_mut();
                             let device_mac = device.address.clone();
 
@@ -163,52 +163,52 @@ impl BluemanApp {
                                 }
                             }
                         }
-                        BMEvent::ConnectRequested => {
+                        AppEvent::ConnectRequested => {
                             // Find which device we're highlighting
                             if let Some(idx) = ui_state.table_state.selected() {
                                 let device = self.devices.as_ref().borrow()[idx - 1].clone();
 
-                                self.mode = BMMode::TryConnect(device);
+                                self.mode = AppMode::TryConnect(device);
                             }
                         }
-                        BMEvent::PairRequested => {
+                        AppEvent::PairRequested => {
                             // Find which device we're highlighting
                             if let Some(idx) = ui_state.table_state.selected() {
                                 let device = self.devices.as_ref().borrow()[idx - 1].clone();
 
-                                self.mode = BMMode::TryPair(device);
+                                self.mode = AppMode::TryPair(device);
                             }
                         }
-                        BMEvent::DisconnectRequested => {
+                        AppEvent::DisconnectRequested => {
                             // Find which device we're highlighting
                             if let Some(idx) = ui_state.table_state.selected() {
                                 let device = self.devices.as_ref().borrow()[idx - 1].clone();
 
-                                self.mode = BMMode::TryDisconnect(device);
+                                self.mode = AppMode::TryDisconnect(device);
                             }
                         }
-                        BMEvent::RemoveRequested => {
+                        AppEvent::RemoveRequested => {
                             // Find which device we're highlighting
                             if let Some(idx) = ui_state.table_state.selected() {
                                 let device = self.devices.as_ref().borrow()[idx - 1].clone();
 
-                                self.mode = BMMode::TryRemove(device);
+                                self.mode = AppMode::TryRemove(device);
                             }
                         }
 
-                        BMEvent::ShowHideUnnamed => {
+                        AppEvent::ShowHideUnnamed => {
                             ui_state.show_unnamed = !ui_state.show_unnamed;
                         }
                         _ => {}
                     },
-                    BMMode::TryConnect(device) => {
+                    AppMode::TryConnect(device) => {
                         if device.connected {
                             let b = Banner(
                                 format!("{} already connected", device.name),
                                 BannerType::Status,
                             );
                             self.set_new_banner(b).await;
-                            self.mode = BMMode::Browse;
+                            self.mode = AppMode::Browse;
                             continue;
                         } else {
                             let res = device.connect().await;
@@ -221,7 +221,7 @@ impl BluemanApp {
                                     );
                                     self.set_new_banner(b).await;
 
-                                    self.mode = BMMode::Browse;
+                                    self.mode = AppMode::Browse;
                                 }
                                 Err(e) => {
                                     let b = Banner(
@@ -234,20 +234,20 @@ impl BluemanApp {
                                     );
                                     self.set_new_banner(b).await;
 
-                                    self.mode = BMMode::Browse;
+                                    self.mode = AppMode::Browse;
                                 }
                             }
                         }
                     }
 
-                    BMMode::TryPair(device) => {
+                    AppMode::TryPair(device) => {
                         if device.paired {
                             let b = Banner(
                                 format!("{} already paired", device.name),
                                 BannerType::Status,
                             );
                             self.set_new_banner(b).await;
-                            self.mode = BMMode::Browse;
+                            self.mode = AppMode::Browse;
                             continue;
                         } else {
                             let res = device.pair().await;
@@ -260,7 +260,7 @@ impl BluemanApp {
                                     );
                                     self.set_new_banner(b).await;
 
-                                    self.mode = BMMode::Browse;
+                                    self.mode = AppMode::Browse;
                                 }
                                 Err(e) => {
                                     let b = Banner(
@@ -273,20 +273,20 @@ impl BluemanApp {
                                     );
                                     self.set_new_banner(b).await;
 
-                                    self.mode = BMMode::Browse;
+                                    self.mode = AppMode::Browse;
                                 }
                             }
                         }
                     }
 
-                    BMMode::TryDisconnect(device) => {
+                    AppMode::TryDisconnect(device) => {
                         if !device.connected {
                             let b = Banner(
                                 format!("{} is not connected", device.name),
                                 BannerType::Status,
                             );
                             self.set_new_banner(b).await;
-                            self.mode = BMMode::Browse;
+                            self.mode = AppMode::Browse;
                             continue;
                         } else {
                             let res = device.disconnect().await;
@@ -299,7 +299,7 @@ impl BluemanApp {
                                     );
                                     self.set_new_banner(b).await;
 
-                                    self.mode = BMMode::Browse;
+                                    self.mode = AppMode::Browse;
                                 }
                                 Err(e) => {
                                     let b = Banner(
@@ -312,20 +312,20 @@ impl BluemanApp {
                                     );
                                     self.set_new_banner(b).await;
 
-                                    self.mode = BMMode::Browse;
+                                    self.mode = AppMode::Browse;
                                 }
                             }
                         }
                     }
 
-                    BMMode::TryRemove(device) => {
+                    AppMode::TryRemove(device) => {
                         if !device.paired {
                             let b = Banner(
                                 format!("{} is not paired", device.name),
                                 BannerType::Status,
                             );
                             self.set_new_banner(b).await;
-                            self.mode = BMMode::Browse;
+                            self.mode = AppMode::Browse;
                             continue;
                         } else {
                             let res = device.remove().await;
@@ -338,7 +338,7 @@ impl BluemanApp {
                                     );
                                     self.set_new_banner(b).await;
 
-                                    self.mode = BMMode::Browse;
+                                    self.mode = AppMode::Browse;
                                 }
                                 Err(e) => {
                                     let b = Banner(
@@ -351,7 +351,7 @@ impl BluemanApp {
                                     );
                                     self.set_new_banner(b).await;
 
-                                    self.mode = BMMode::Browse;
+                                    self.mode = AppMode::Browse;
                                 }
                             }
                         }
@@ -383,7 +383,7 @@ impl BluemanApp {
 
         tokio::spawn(async move {
             sleep(duration).await;
-            chan.send(BMEvent::BannerExpired(b.0)).await.unwrap();
+            chan.send(AppEvent::BannerExpired(b.0)).await.unwrap();
         });
     }
 }

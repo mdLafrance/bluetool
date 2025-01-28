@@ -24,12 +24,12 @@ use ratatui::{
     Frame, Terminal,
 };
 
-use crate::app::{BMMode, BTDevice, Banner};
+use crate::app::{AppMode, BTDevice, Banner};
 
 use super::{
     banner::draw_banner,
     colors::BMColors,
-    controls::{draw_controls, draw_quit_hint},
+    controls::{draw_controls, draw_help_hint, draw_quit_hint},
     header::draw_title,
     table::draw_table,
 };
@@ -55,7 +55,7 @@ pub fn shutdown_ui() -> Result<()> {
     Ok(())
 }
 
-pub fn draw_ui(f: &mut Frame, ui_state: &mut UIState, mode: BMMode) {
+pub fn draw_ui(f: &mut Frame, ui_state: &mut UIState, mode: AppMode) {
     let block = Block::default()
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded)
@@ -75,13 +75,14 @@ pub fn draw_ui(f: &mut Frame, ui_state: &mut UIState, mode: BMMode) {
 
     draw_title(f, f.area(), ui_state);
     draw_quit_hint(f, f.area(), ui_state);
+    draw_help_hint(f, f.area(), ui_state);
     draw_table(f, table_area, ui_state);
     draw_banner(f, banner_area, ui_state);
     draw_controls(f, f.area(), ui_state);
 
     match mode {
-        BMMode::TryConnect(d) => draw_try_connect_panel(f, d),
-        BMMode::TryDisconnect(d) => draw_try_disconnect_panel(f, d),
+        AppMode::TryConnect(d) => draw_try_connect_panel(f, d),
+        AppMode::TryDisconnect(d) => draw_try_disconnect_panel(f, d),
         _ => {}
     }
 }

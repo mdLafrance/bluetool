@@ -69,3 +69,23 @@ pub fn draw_quit_hint(f: &mut Frame, area: Rect, _: &mut UIState) {
 
     f.render_widget(quit_hint, rect);
 }
+
+pub fn draw_help_hint(f: &mut Frame, area: Rect, _: &mut UIState) {
+    let quit_hint = Line::from(vec![
+        Span::styled("┤ ", Style::new().fg(BMColors::BLUE)),
+        Span::styled("[?] ", Style::new().bold().fg(BMColors::GRAY)),
+        Span::styled("help", Style::new().fg(BMColors::DARK_GRAY)),
+        Span::styled(" ├", Style::new().fg(BMColors::BLUE)),
+    ]);
+
+    let x = area.width as u16 - 15 - quit_hint.width() as u16;
+
+    let rect = Rect {
+        x,
+        y: area.height - 1,
+        width: quit_hint.width() as u16,
+        height: 1,
+    };
+
+    f.render_widget(quit_hint, rect);
+}

@@ -4,9 +4,9 @@ use std::sync::Arc;
 use crossterm::event::{Event, EventStream, KeyCode};
 use tokio::{sync::mpsc::Sender, task::JoinHandle};
 
-use super::blueman::BMEvent;
+use super::btui::AppEvent;
 
-pub fn launch_key_listener(event_send_chan: Arc<Sender<BMEvent>>) -> JoinHandle<()> {
+pub fn launch_key_listener(event_send_chan: Arc<Sender<AppEvent>>) -> JoinHandle<()> {
     let mut event_stream = EventStream::new();
 
     tokio::spawn(async move {
@@ -15,58 +15,58 @@ pub fn launch_key_listener(event_send_chan: Arc<Sender<BMEvent>>) -> JoinHandle<
                 Some(Ok(Event::Key(evnt))) => match evnt.code {
                     // Quit key
                     KeyCode::Char('q') => {
-                        event_send_chan.send(BMEvent::Exit).await.unwrap();
+                        event_send_chan.send(AppEvent::Exit).await.unwrap();
                     }
                     KeyCode::Char('j') | KeyCode::Down => {
-                        event_send_chan.send(BMEvent::ScrollDown).await.unwrap();
+                        event_send_chan.send(AppEvent::ScrollDown).await.unwrap();
                     }
                     KeyCode::Char('k') | KeyCode::Up => {
-                        event_send_chan.send(BMEvent::ScrollUp).await.unwrap();
+                        event_send_chan.send(AppEvent::ScrollUp).await.unwrap();
                     }
                     KeyCode::Char('c') => {
                         event_send_chan
-                            .send(BMEvent::ConnectRequested)
+                            .send(AppEvent::ConnectRequested)
                             .await
                             .unwrap();
                     }
                     KeyCode::Char('p') => {
                         event_send_chan
-                            .send(BMEvent::ConnectRequested)
+                            .send(AppEvent::ConnectRequested)
                             .await
                             .unwrap();
                     }
                     KeyCode::Char('d') => {
                         event_send_chan
-                            .send(BMEvent::DisconnectRequested)
+                            .send(AppEvent::DisconnectRequested)
                             .await
                             .unwrap();
                     }
                     KeyCode::Char('r') => {
                         event_send_chan
-                            .send(BMEvent::RemoveRequested)
+                            .send(AppEvent::RemoveRequested)
                             .await
                             .unwrap();
                     }
                     KeyCode::Char('e') => {
                         event_send_chan
-                            .send(BMEvent::DebugFailBanner)
+                            .send(AppEvent::DebugFailBanner)
                             .await
                             .unwrap();
                     }
                     KeyCode::Char('b') => {
                         event_send_chan
-                            .send(BMEvent::DebugSuccessBanner)
+                            .send(AppEvent::DebugSuccessBanner)
                             .await
                             .unwrap();
                     }
                     KeyCode::Char('h') => {
                         event_send_chan
-                            .send(BMEvent::ShowHideUnnamed)
+                            .send(AppEvent::ShowHideUnnamed)
                             .await
                             .unwrap();
                     }
                     _ => {
-                        event_send_chan.send(BMEvent::Pass).await.unwrap();
+                        event_send_chan.send(AppEvent::Pass).await.unwrap();
                     }
                 },
                 _ => {}
