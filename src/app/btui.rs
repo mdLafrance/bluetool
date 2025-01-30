@@ -10,7 +10,7 @@ use tokio::{
 
 use crate::{
     app::{bluetooth::launch_bluetooth_listener, input::launch_key_listener},
-    display::{draw_ui, init_ui, shutdown_ui, UIState},
+    display::{draw_ui, format_inspect_text, init_ui, shutdown_ui, UIState},
 };
 
 use super::bluetooth::BTDevice;
@@ -19,6 +19,7 @@ use super::bluetooth::BTDevice;
 pub enum AppEvent {
     Pass,
     Exit,
+    Esc,
     ScrollDown,
     ScrollUp,
     DeviceAdded(BTDevice),
@@ -32,6 +33,7 @@ pub enum AppEvent {
     DebugFailBanner,
     DebugSuccessBanner,
     ShowHideUnnamed,
+    InspectCurrent,
 }
 
 #[derive(Clone)]
@@ -47,6 +49,7 @@ pub struct Banner(pub String, pub BannerType);
 #[derive(Debug, Clone)]
 pub enum AppMode {
     Browse,
+    Inspect(BTDevice),
     TryConnect(BTDevice),
     TryPair(BTDevice),
     TryDisconnect(BTDevice),
@@ -86,6 +89,8 @@ impl BTUIApp {
             table_state: TableState::new(),
             banner: None,
             show_unnamed: false,
+            inspect_scroll: 0,
+            inspect_text: None,
         };
 
         defer! {
@@ -104,6 +109,7 @@ impl BTUIApp {
                 // Process mode-independent events
                 match &e {
                     AppEvent::Exit => break,
+                    AppEvent::Esc => self.mode = AppMode::Browse,
                     AppEvent::BannerExpired(msg) => {
                         if let Some(current_banner) = &mut self.banner {
                             if &current_banner.0 == msg {
@@ -128,7 +134,7 @@ impl BTUIApp {
                     _ => {}
                 };
 
-                match &self.mode {
+                match self.mode.clone() {
                     AppMode::Browse => match e {
                         AppEvent::Exit => break,
                         AppEvent::ScrollUp => match ui_state.table_state.selected() {
@@ -195,12 +201,20 @@ impl BTUIApp {
                                 self.mode = AppMode::TryRemove(device);
                             }
                         }
-
                         AppEvent::ShowHideUnnamed => {
                             ui_state.show_unnamed = !ui_state.show_unnamed;
                         }
+                        AppEvent::InspectCurrent => {
+                            if let Some(idx) = ui_state.table_state.selected() {
+                                let device = self.devices.as_ref().borrow()[idx - 1].clone();
+                                self.mode = AppMode::Inspect(device);
+                            }
+                        }
                         _ => {}
                     },
+                    AppMode::Inspect(device) => {
+                        ui_state.inspect_text = Some(format_inspect_text(device.clone()).await)
+                    }
                     AppMode::TryConnect(device) => {
                         if device.connected {
                             let b = Banner(

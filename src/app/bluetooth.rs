@@ -18,7 +18,7 @@ use super::btui::AppEvent;
 
 #[derive(Debug, Clone)]
 pub struct BTDevice {
-    inner: Device,
+    pub inner: Device,
     pub name: String,
     pub icon_name: String,
     pub paired: bool,

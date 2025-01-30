@@ -7,7 +7,7 @@ use ratatui::{
 
 use super::{colors::BMColors, UIState};
 
-pub fn draw_title(f: &mut Frame, _: Rect, _: &mut UIState) {
+pub fn draw_header(f: &mut Frame, _: Rect, _: &mut UIState) {
     let title = Line::from(vec![
         Span::styled("", Style::new().fg(BMColors::BLUE)),
         Span::styled(" BTUI 󰂯 ", Style::new().bold().white().bg(BMColors::BLUE)),
@@ -21,7 +21,7 @@ pub fn draw_title(f: &mut Frame, _: Rect, _: &mut UIState) {
     ]);
 
     let rect = Rect {
-        x: 2,
+        x: 1,
         y: 0,
         width: title.width() as u16,
         height: 1,

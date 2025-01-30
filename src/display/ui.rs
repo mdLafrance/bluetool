@@ -29,16 +29,19 @@ use crate::app::{AppMode, BTDevice, Banner};
 use super::{
     banner::draw_banner,
     colors::BMColors,
-    controls::{draw_controls, draw_help_hint, draw_quit_hint},
-    header::draw_title,
+    controls::{draw_controls, draw_quit_hint},
+    header::draw_header,
+    inspect::draw_inspect_panel,
     table::draw_table,
 };
 
-pub struct UIState {
+pub struct UIState<'a> {
     pub devices: Rc<RefCell<Vec<BTDevice>>>,
     pub banner: Option<Banner>,
     pub table_state: TableState,
     pub show_unnamed: bool,
+    pub inspect_scroll: u16,
+    pub inspect_text: Option<Paragraph<'a>>,
 }
 
 /// Setup the necessary components to make terminal ui calls.
@@ -55,30 +58,34 @@ pub fn shutdown_ui() -> Result<()> {
     Ok(())
 }
 
-pub fn draw_ui(f: &mut Frame, ui_state: &mut UIState, mode: AppMode) {
-    let block = Block::default()
-        .borders(Borders::ALL)
-        .border_type(BorderType::Rounded)
-        .border_style(Style::new().fg(BMColors::BLUE));
-
+pub fn draw_ui(f: &mut Frame<'_>, ui_state: &mut UIState<'_>, mode: AppMode) {
     let layout = Layout::default()
         .direction(Direction::Vertical)
-        .constraints(vec![Constraint::Percentage(99), Constraint::Length(1)])
-        .vertical_margin(1)
-        .horizontal_margin(1)
-        .split(block.inner(f.area()));
+        .constraints(vec![
+            Constraint::Length(2),
+            Constraint::Percentage(99),
+            Constraint::Length(1),
+        ])
+        .split(f.area());
 
-    f.render_widget(block, f.area());
+    let header_area = layout[0];
+    let table_area = layout[1];
+    let banner_area = layout[2];
 
-    let table_area = layout[0];
-    let banner_area = layout[1];
-
-    draw_title(f, f.area(), ui_state);
+    draw_header(f, header_area, ui_state);
     draw_quit_hint(f, f.area(), ui_state);
-    draw_help_hint(f, f.area(), ui_state);
-    draw_table(f, table_area, ui_state);
+
     draw_banner(f, banner_area, ui_state);
-    draw_controls(f, f.area(), ui_state);
+
+    match &mode {
+        AppMode::Inspect(d) => {
+            draw_inspect_panel(f, table_area, ui_state, d);
+        }
+        _ => {
+            draw_table(f, table_area, ui_state);
+            draw_controls(f, f.area(), ui_state);
+        }
+    }
 
     match mode {
         AppMode::TryConnect(d) => draw_try_connect_panel(f, d),

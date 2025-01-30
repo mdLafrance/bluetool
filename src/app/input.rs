@@ -17,6 +17,9 @@ pub fn launch_key_listener(event_send_chan: Arc<Sender<AppEvent>>) -> JoinHandle
                     KeyCode::Char('q') => {
                         event_send_chan.send(AppEvent::Exit).await.unwrap();
                     }
+                    KeyCode::Esc => {
+                        event_send_chan.send(AppEvent::Esc).await.unwrap();
+                    }
                     KeyCode::Char('j') | KeyCode::Down => {
                         event_send_chan.send(AppEvent::ScrollDown).await.unwrap();
                     }
@@ -62,6 +65,12 @@ pub fn launch_key_listener(event_send_chan: Arc<Sender<AppEvent>>) -> JoinHandle
                     KeyCode::Char('h') => {
                         event_send_chan
                             .send(AppEvent::ShowHideUnnamed)
+                            .await
+                            .unwrap();
+                    }
+                    KeyCode::Char('i') => {
+                        event_send_chan
+                            .send(AppEvent::InspectCurrent)
                             .await
                             .unwrap();
                     }

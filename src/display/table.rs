@@ -2,7 +2,7 @@ use ratatui::{
     layout::{Constraint, Rect},
     style::{Modifier, Style, Stylize},
     text::Span,
-    widgets::{Row, Table},
+    widgets::{Block, BorderType, Borders, Padding, Row, Table},
     Frame,
 };
 
@@ -25,7 +25,7 @@ pub fn draw_table(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
             "Connected",
             "Battery",
             "Type",
-            "MAC Address",
+            "Address",
         ]
         .iter()
         .map(|t| Span::styled(*t, table_header_style)),
@@ -82,6 +82,20 @@ pub fn draw_table(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
         ],
     )
     .column_spacing(1)
+    .block(
+        Block::new()
+            .title(" Devices ")
+            .title_style(Style::new().fg(BMColors::GRAY).bold())
+            .padding(Padding {
+                left: 1,
+                right: 1,
+                top: 0,
+                bottom: 0,
+            })
+            .borders(Borders::ALL)
+            .border_style(Style::new().fg(BMColors::DARK_GRAY))
+            .border_type(BorderType::Rounded),
+    )
     .row_highlight_style(Style::new().add_modifier(Modifier::REVERSED));
 
     f.render_stateful_widget(table, area, &mut ui_state.table_state);
