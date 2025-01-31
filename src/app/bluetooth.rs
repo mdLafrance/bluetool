@@ -184,6 +184,7 @@ pub async fn launch_bluetooth_listener(
             }
         }
 
+        panic!("asdjflasdjkf");
         Ok(())
     })
 }
