@@ -50,18 +50,6 @@ pub fn launch_key_listener(event_send_chan: Arc<Sender<AppEvent>>) -> JoinHandle
                             .await
                             .unwrap();
                     }
-                    KeyCode::Char('e') => {
-                        event_send_chan
-                            .send(AppEvent::DebugFailBanner)
-                            .await
-                            .unwrap();
-                    }
-                    KeyCode::Char('b') => {
-                        event_send_chan
-                            .send(AppEvent::DebugSuccessBanner)
-                            .await
-                            .unwrap();
-                    }
                     KeyCode::Char('h') => {
                         event_send_chan
                             .send(AppEvent::ShowHideUnnamed)
