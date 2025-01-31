@@ -21,6 +21,7 @@ pub fn draw_controls(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
     let mut control_spans: Vec<Span> = vec![];
 
     control_texts.iter().for_each(|(a, b)| {
+        control_spans.push(Span::raw(" "));
         control_spans.push(Span::styled(
             format!("[{}]", a),
             Style::new().bold().fg(BMColors::BLUE2),
@@ -28,13 +29,14 @@ pub fn draw_controls(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
         control_spans.push(Span::raw(" "));
         control_spans.push(Span::styled(b.to_string(), Style::new().fg(BMColors::GRAY)));
         control_spans.push(Span::raw(" "));
-        control_spans.push(Span::raw(" "));
     });
 
     let controls = Line::from(control_spans);
 
+    let offset = area.width as i32 / 2 - controls.width() as i32 / 2;
+
     let rect = Rect {
-        x: 1,
+        x: offset as u16,
         y: area.height - 1,
         width: controls.width() as u16,
         height: 1,
