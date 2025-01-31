@@ -109,7 +109,10 @@ impl BTUIApp {
                 // Process mode-independent events
                 match &e {
                     AppEvent::Exit => break,
-                    AppEvent::Esc => self.mode = AppMode::Browse,
+                    AppEvent::Esc => {
+                        self.mode = AppMode::Browse;
+                        ui_state.inspect_text = None;
+                    }
                     AppEvent::BannerExpired(msg) => {
                         if let Some(current_banner) = &mut self.banner {
                             if &current_banner.0 == msg {
@@ -213,7 +216,8 @@ impl BTUIApp {
                         _ => {}
                     },
                     AppMode::Inspect(device) => {
-                        ui_state.inspect_text = Some(format_inspect_text(device.clone()).await)
+                        ui_state.inspect_text = Some(format_inspect_text(device.clone()).await);
+                        self.event_send_chan.send(AppEvent::Pass).await?;
                     }
                     AppMode::TryConnect(device) => {
                         if device.connected {

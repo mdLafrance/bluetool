@@ -1,8 +1,9 @@
+use bluer::Uuid;
 use ratatui::{
     layout::Rect,
     style::{Style, Stylize},
     text::Line,
-    widgets::{Block, BorderType, Borders, Paragraph, Widget},
+    widgets::{Block, BorderType, Borders, Padding, Paragraph, Widget, Wrap},
     Frame,
 };
 
@@ -30,19 +31,64 @@ pub async fn format_inspect_text(device: BTDevice) -> Paragraph<'static> {
             .unwrap_or(None)
             .unwrap_or("???".to_string())
     )));
-    // println!("Name: {:?}", device.inner.name().await?);
-    // println!("Icon: {:?}", device.inner.icon().await?);
-    // println!("Class: {:?}", device.inner.class().await?);
-    // println!(
-    //     "UUIDs: {:?}",
-    //     device.inner.uuids().await?.unwrap_or_default()
-    // );
-    // println!("Paired: {:?}", device.inner.is_paired().await?);
-    // println!("Connected: {:?}", device.inner.is_connected().await?);
-    // println!("Trusted: {:?}", device.inner.is_trusted().await?);
-    // println!("Modalias: {:?}", device.inner.modalias().await?);
-    // println!("RSSI: {:?}", device.inner.rssi().await?);
-    // println!("TX power: {:?}", device.inner.tx_power().await?);
+    lines.push(Line::raw(format!(
+        "Class: {}",
+        device
+            .inner
+            .class()
+            .await
+            .unwrap_or(None)
+            .unwrap_or_default()
+    )));
+
+    let mut uuids = device
+        .inner
+        .uuids()
+        .await
+        .unwrap_or(None)
+        .unwrap_or_default()
+        .into_iter()
+        .collect::<Vec<Uuid>>();
+    uuids.sort();
+
+    lines.push(Line::raw(format!(
+        "UUIDS: {}",
+        uuids
+            .iter()
+            .map(|u| u.to_string())
+            .collect::<Vec<String>>()
+            .join(", ")
+    )));
+
+    lines.push(Line::raw(format!("Paired: {}", device.paired)));
+    lines.push(Line::raw(format!("Connected: {}", device.connected)));
+    lines.push(Line::raw(format!(
+        "RSSI: {}",
+        device
+            .inner
+            .rssi()
+            .await
+            .unwrap_or(None)
+            .unwrap_or_default()
+    )));
+    lines.push(Line::raw(format!(
+        "TX Power: {}",
+        device
+            .inner
+            .tx_power()
+            .await
+            .unwrap_or(None)
+            .unwrap_or_default()
+    )));
+    // lines.push(Line::raw(format!(
+    //     "Manufacturer Data",
+    //     device
+    //         .inner
+    //         .manufacturer_data()
+    //         .await
+    //         .unwrap_or(None)
+    //         .unwrap_or("???".to_string())
+    // )));
     // println!(
     //     "Manufacturer data: {:?}",
     //     device.inner.manufacturer_data().await?
@@ -58,14 +104,22 @@ pub fn draw_inspect_panel(
     ui_state: &mut UIState,
     device: &BTDevice,
 ) {
-    let b = Block::new()
-        .title(format!(" Device: {} ", device.name))
-        .title_style(Style::new().bold().white())
-        .borders(Borders::ALL)
-        .border_style(Style::new().fg(BMColors::BLUE))
-        .border_type(BorderType::Rounded);
-
     if let Some(p) = &ui_state.inspect_text {
-        f.render_widget(p, area);
+        let b = Block::new()
+            .padding(Padding {
+                left: 4,
+                right: 4,
+                top: 1,
+                bottom: 1,
+            })
+            .title(format!(" Device: {} ", device.name))
+            .title_style(Style::new().bold().white())
+            .borders(Borders::ALL)
+            .border_style(Style::new().fg(BMColors::BLUE))
+            .border_type(BorderType::Rounded);
+
+        let paragraph = p.clone().block(b).wrap(Wrap { trim: true });
+
+        f.render_widget(paragraph, area);
     }
 }
