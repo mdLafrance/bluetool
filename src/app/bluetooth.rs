@@ -25,6 +25,7 @@ pub struct BTDevice {
     pub connected: bool,
     pub address: String,
     pub battery: Option<u8>,
+    pub rssi: Option<i16>,
 }
 
 impl BTDevice {
@@ -53,6 +54,7 @@ impl BTDevice {
             paired: device.is_paired().await.unwrap_or(false),
             connected: device.is_connected().await.unwrap_or(false),
             battery: device.tx_power().await.unwrap_or(None).map(|p| p as u8),
+            rssi: device.rssi().await.unwrap_or(None),
         }
     }
 

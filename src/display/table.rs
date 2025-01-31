@@ -23,7 +23,7 @@ pub fn draw_table(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
             "Name",
             "Paired",
             "Connected",
-            "Battery",
+            "Signal",
             "Type",
             "Address",
         ]
@@ -60,7 +60,7 @@ pub fn draw_table(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
                     } else {
                         Span::default()
                     },
-                    format_battery_span(d.battery),
+                    format_signal_span(d.rssi),
                     Span::styled(d.icon_name.to_owned(), s.dark_gray()),
                     Span::styled(d.address.to_owned(), s.dark_gray()),
                 ])
@@ -110,6 +110,18 @@ fn format_battery_span(battery: Option<u8>) -> Span<'static> {
             70..90 => Span::styled(" ", Style::new().fg(BMColors::GREEN)),
             90.. => Span::styled(" ", Style::new().fg(BMColors::GREEN)),
             _ => unreachable!(),
+        }
+    } else {
+        Span::raw("")
+    }
+}
+
+fn format_signal_span(battery: Option<i16>) -> Span<'static> {
+    if let Some(b) = battery {
+        match b {
+            -50..0 => Span::styled("󰢾 ", Style::new().fg(BMColors::GREEN)),
+            -90..-51 => Span::styled("󰢽 ", Style::new().fg(BMColors::YELLOW)),
+            _ => Span::styled("󰢼 ", Style::new().fg(BMColors::RED)),
         }
     } else {
         Span::raw("")
