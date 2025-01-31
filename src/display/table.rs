@@ -24,7 +24,7 @@ pub fn draw_table(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
             "Paired",
             "Connected",
             "Signal",
-            "Type",
+            "Battery",
             "Address",
         ]
         .iter()
@@ -61,7 +61,7 @@ pub fn draw_table(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
                         Span::default()
                     },
                     format_signal_span(d.rssi),
-                    Span::styled(d.icon_name.to_owned(), s.dark_gray()),
+                    format_battery_span(d.battery),
                     Span::styled(d.address.to_owned(), s.dark_gray()),
                 ])
             }),

@@ -2,7 +2,7 @@ use bluer::Uuid;
 use ratatui::{
     layout::Rect,
     style::{Style, Stylize},
-    text::Line,
+    text::{Line, Span},
     widgets::{Block, BorderType, Borders, Padding, Paragraph, Widget, Wrap},
     Frame,
 };
@@ -31,6 +31,7 @@ pub async fn format_inspect_text(device: BTDevice) -> Paragraph<'static> {
             .unwrap_or(None)
             .unwrap_or("???".to_string())
     )));
+    lines.push(Line::raw(format!("Icon type: {}", device.icon_name)));
     lines.push(Line::raw(format!(
         "Class: {}",
         device
@@ -69,7 +70,7 @@ pub async fn format_inspect_text(device: BTDevice) -> Paragraph<'static> {
             .rssi()
             .await
             .unwrap_or(None)
-            .unwrap_or_default()
+            .map_or_else(|| "???".to_string(), |r| r.to_string())
     )));
     lines.push(Line::raw(format!(
         "TX Power: {}",
@@ -78,22 +79,26 @@ pub async fn format_inspect_text(device: BTDevice) -> Paragraph<'static> {
             .tx_power()
             .await
             .unwrap_or(None)
+            .map_or_else(|| "???".to_string(), |t| t.to_string())
+    )));
+    lines.push(Line::raw(format!(
+        "Manufacturer Data: {:?}",
+        device
+            .inner
+            .manufacturer_data()
+            .await
+            .unwrap_or(None)
             .unwrap_or_default()
     )));
-    // lines.push(Line::raw(format!(
-    //     "Manufacturer Data",
-    //     device
-    //         .inner
-    //         .manufacturer_data()
-    //         .await
-    //         .unwrap_or(None)
-    //         .unwrap_or("???".to_string())
-    // )));
-    // println!(
-    //     "Manufacturer data: {:?}",
-    //     device.inner.manufacturer_data().await?
-    // );
-    // println!("Service data: {:?}", device.inner.service_data().await?);
+    lines.push(Line::raw(format!(
+        "Service data: {:?}",
+        device
+            .inner
+            .service_data()
+            .await
+            .unwrap_or(None)
+            .unwrap_or_default()
+    )));
 
     Paragraph::new(lines)
 }
@@ -115,7 +120,7 @@ pub fn draw_inspect_panel(
             .title(format!(" Device: {} ", device.name))
             .title_style(Style::new().bold().white())
             .borders(Borders::ALL)
-            .border_style(Style::new().fg(BMColors::BLUE))
+            .border_style(Style::new().fg(BMColors::DARK_GRAY))
             .border_type(BorderType::Rounded);
 
         let paragraph = p.clone().block(b).wrap(Wrap { trim: true });

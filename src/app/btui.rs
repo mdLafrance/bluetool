@@ -215,13 +215,13 @@ impl BTUIApp {
                             if let Some(idx) = ui_state.table_state.selected() {
                                 let device = self.devices.as_ref().borrow()[idx - 1].clone();
                                 self.mode = AppMode::Inspect(device);
+                                self.event_send_chan.send(AppEvent::Pass).await?;
                             }
                         }
                         _ => {}
                     },
                     AppMode::Inspect(device) => {
                         ui_state.inspect_text = Some(format_inspect_text(device.clone()).await);
-                        self.event_send_chan.send(AppEvent::Pass).await?;
                     }
                     AppMode::TryConnect(device) => {
                         if device.connected {
@@ -398,7 +398,7 @@ impl BTUIApp {
 
         let duration = match b.1 {
             BannerType::Failure => Duration::from_secs(4),
-            _ => Duration::from_secs(2),
+            _ => Duration::from_secs(3),
         };
 
         self.banner = Some(b.clone());

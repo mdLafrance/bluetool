@@ -2,7 +2,7 @@
 
 use anyhow::Result;
 use bluer::{
-    Adapter, AdapterEvent, Address, Device, DeviceEvent, DiscoveryFilter, DiscoveryTransport,
+    Adapter, AdapterEvent, Address, Device, DeviceEvent, DiscoveryFilter, DiscoveryTransport, Uuid,
 };
 use futures::{pin_mut, stream::SelectAll, StreamExt};
 use std::{
@@ -53,7 +53,7 @@ impl BTDevice {
 
             paired: device.is_paired().await.unwrap_or(false),
             connected: device.is_connected().await.unwrap_or(false),
-            battery: device.tx_power().await.unwrap_or(None).map(|p| p as u8),
+            battery: check_battery_service(device).await,
             rssi: device.rssi().await.unwrap_or(None),
         }
     }
@@ -84,38 +84,26 @@ impl BTDevice {
     }
 }
 
-// async fn query_device(adapter: &Adapter, addr: Address) -> bluer::Result<()> {
-//     let device = adapter.device(addr)?;
-//     println!("    Address type:       {}", device.address_type().await?);
-//     println!("    Name:               {:?}", device.name().await?);
-//     println!("    Icon:               {:?}", device.icon().await?);
-//     println!("    Class:              {:?}", device.class().await?);
-//     println!(
-//         "    UUIDs:              {:?}",
-//         device.uuids().await?.unwrap_or_default()
-//     );
-//     println!("    Paired:             {:?}", device.is_paired().await?);
-//     println!("    Connected:          {:?}", device.is_connected().await?);
-//     println!("    Trusted:            {:?}", device.is_trusted().await?);
-//     println!("    Modalias:           {:?}", device.modalias().await?);
-//     println!("    RSSI:               {:?}", device.rssi().await?);
-//     println!("    TX power:           {:?}", device.tx_power().await?);
-//     println!(
-//         "    Manufacturer data:  {:?}",
-//         device.manufacturer_data().await?
-//     );
-//     println!("    Service data:       {:?}", device.service_data().await?);
-//     Ok(())
-// }
-//
-// async fn query_all_device_properties(adapter: &Adapter, addr: Address) -> bluer::Result<()> {
-//     let device = adapter.device(addr)?;
-//     let props = device.all_properties().await?;
-//     for prop in props {
-//         println!("    {:?}", &prop);
-//     }
-//     Ok(())
-// }
+async fn check_battery_service(device: &Device) -> Option<u8> {
+    // Fuck this is nasty though
+    if let Ok(services) = device.services().await {
+        for service in services {
+            if service.uuid().await.unwrap() == Uuid::from_u128(0x180F) {
+                if let Ok(characteristics) = service.characteristics().await {
+                    for characteristic in characteristics {
+                        if characteristic.uuid().await.unwrap() == Uuid::from_u128(0x2A19) {
+                            if let Ok(value) = characteristic.read().await {
+                                return Some(value[0]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    None
+}
 
 pub async fn launch_bluetooth_listener(
     event_send_chan: Arc<Sender<AppEvent>>,
@@ -184,7 +172,6 @@ pub async fn launch_bluetooth_listener(
             }
         }
 
-        panic!("asdjflasdjkf");
         Ok(())
     })
 }
