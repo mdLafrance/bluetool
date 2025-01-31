@@ -120,7 +120,7 @@ fn format_signal_span(battery: Option<i16>) -> Span<'static> {
     if let Some(b) = battery {
         match b {
             -50..0 => Span::styled("󰢾 ", Style::new().fg(BMColors::GREEN)),
-            -90..-51 => Span::styled("󰢽 ", Style::new().fg(BMColors::YELLOW)),
+            -90..-50 => Span::styled("󰢽 ", Style::new().fg(BMColors::YELLOW)),
             _ => Span::styled("󰢼 ", Style::new().fg(BMColors::RED)),
         }
     } else {

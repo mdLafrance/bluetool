@@ -70,12 +70,12 @@ pub fn draw_ui(f: &mut Frame<'_>, ui_state: &mut UIState<'_>, mode: AppMode) {
 
     let header_area = layout[0];
     let table_area = layout[1];
-    let banner_area = layout[2];
+    let controls_area = layout[2];
 
     draw_header(f, header_area, ui_state);
     draw_quit_hint(f, f.area(), ui_state);
 
-    draw_banner(f, banner_area, ui_state);
+    draw_banner(f, ui_state);
 
     match &mode {
         AppMode::Inspect(d) => {

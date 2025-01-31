@@ -8,38 +8,30 @@ use ratatui::{
 use super::{colors::BMColors, UIState};
 
 pub fn draw_controls(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
-    let controls = Line::from(vec![
-        Span::styled("[jk] ", Style::new().bold().fg(BMColors::GRAY)),
-        Span::styled("select", Style::new().fg(BMColors::DARK_GRAY)),
-        Span::raw(" "),
-        Span::styled("[c] ", Style::new().bold().fg(BMColors::GRAY)),
-        Span::styled("connect", Style::new().fg(BMColors::DARK_GRAY)),
-        Span::raw(" "),
-        Span::styled("[p] ", Style::new().bold().fg(BMColors::GRAY)),
-        Span::styled("pair", Style::new().fg(BMColors::DARK_GRAY)),
-        Span::raw(" "),
-        Span::styled("[d] ", Style::new().bold().fg(BMColors::GRAY)),
-        Span::styled("disconnect", Style::new().fg(BMColors::DARK_GRAY)),
-        Span::raw(" "),
-        Span::styled("[r] ", Style::new().bold().fg(BMColors::GRAY)),
-        Span::styled("remove", Style::new().fg(BMColors::DARK_GRAY)),
-        Span::raw(" "),
-        Span::styled("[h] ", Style::new().bold().fg(BMColors::GRAY)),
-        Span::styled(
-            format!(
-                "{} unnamed",
-                if ui_state.show_unnamed {
-                    "hide"
-                } else {
-                    "show"
-                }
-            ),
-            Style::new().fg(BMColors::DARK_GRAY),
-        ),
-        Span::raw(" "),
-        Span::styled("[i] ", Style::new().bold().fg(BMColors::GRAY)),
-        Span::styled("inspect device", Style::new().fg(BMColors::DARK_GRAY)),
-    ]);
+    let control_texts: Vec<(&'static str, &'static str)> = vec![
+        ("jk", "Select"),
+        ("c", "Connect"),
+        ("p", "Pair"),
+        ("d", "Disconnect"),
+        ("r", "Remove"),
+        ("h", "Show/Hide Unammed"),
+        ("i", "Inspect device"),
+    ];
+
+    let mut control_spans: Vec<Span> = vec![];
+
+    control_texts.iter().for_each(|(a, b)| {
+        control_spans.push(Span::styled(
+            format!("[{}]", a),
+            Style::new().bold().fg(BMColors::BLUE2),
+        ));
+        control_spans.push(Span::raw(" "));
+        control_spans.push(Span::styled(b.to_string(), Style::new().fg(BMColors::GRAY)));
+        control_spans.push(Span::raw(" "));
+        control_spans.push(Span::raw(" "));
+    });
+
+    let controls = Line::from(control_spans);
 
     let rect = Rect {
         x: 1,

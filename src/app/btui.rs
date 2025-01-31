@@ -146,7 +146,11 @@ impl BTUIApp {
                             _ => {}
                         },
                         AppEvent::ScrollDown => match ui_state.table_state.selected() {
-                            None => *ui_state.table_state.selected_mut() = Some(1),
+                            None => {
+                                if self.devices.as_ref().borrow().len() != 0 {
+                                    *ui_state.table_state.selected_mut() = Some(1);
+                                }
+                            }
                             Some(idx) => *ui_state.table_state.selected_mut() = Some(idx + 1),
                         },
                         AppEvent::DeviceAdded(device) => {
