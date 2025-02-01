@@ -6,8 +6,8 @@
 </h3>
 <div align=center>
 
-  [![Pipeline](https://github.com/mdLafrance/mainframe/actions/workflows/pipeline.yaml/badge.svg)](https://github.com/mdLafrance/mainframe/actions/workflows/pipeline.yaml)
-  [![crates.io](https://img.shields.io/crates/v/mainframe)](https://crates.io/crates/mainframe)
+  [![Pipeline](https://github.com/mdLafrance/bluetool/actions/workflows/pipeline.yaml/badge.svg)](https://github.com/mdLafrance/bluetool/actions/workflows/pipeline.yaml)
+  [![crates.io](https://img.shields.io/crates/v/bluetool)](https://crates.io/crates/bluetool)
 
 </div>
 <br />
