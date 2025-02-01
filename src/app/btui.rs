@@ -175,6 +175,8 @@ impl BTUIApp {
                                     *d = device.clone();
                                 }
                             }
+
+                            devices.sort_by(|a, b| b.cmp(a));
                         }
                         AppEvent::ConnectRequested => {
                             // Find which device we're highlighting
