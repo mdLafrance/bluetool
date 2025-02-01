@@ -11,7 +11,8 @@
 
 </div>
 <br />
-`bluetool` is a terminal gui app for linux Bluez systems, meant to be easier to use than `bluetoothctl`, and quicker than a traditional GUI.
+
+A terminal gui app for linux Bluez systems, meant to be easier to use than `bluetoothctl`, and quicker than a traditional GUI.
 
 ## Usage
 Run `bluetool` from the terminal to drop into the gui. Press **q** at any time to quit.
