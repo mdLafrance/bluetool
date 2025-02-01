@@ -1,8 +1,11 @@
 [package]
 name = "btui"
-version = "1.0.0"
+version = "0.1.0"
 edition = "2021"
+authors = ["Max Lafrance maxlafrance97@gmail.com"]
 descirption = "TUI bluetooth device manager"
+license = "MIT"
+repository = "https://github.com/mdlafrance/btui"
 
 [dependencies]
 bluer = { version = "0.17.3", features = ["full"] }
