@@ -10,7 +10,10 @@ use super::{colors::BMColors, UIState};
 pub fn draw_header(f: &mut Frame, _: Rect, _: &mut UIState) {
     let title = Line::from(vec![
         Span::styled("", Style::new().fg(BMColors::BLUE)),
-        Span::styled(" BTUI 󰂯 ", Style::new().bold().white().bg(BMColors::BLUE)),
+        Span::styled(
+            " BlueTool 󰂯 ",
+            Style::new().bold().white().bg(BMColors::BLUE),
+        ),
         Span::styled("", Style::new().fg(BMColors::BLUE)),
         Span::raw(" "),
         Span::styled(

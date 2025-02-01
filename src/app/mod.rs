@@ -1,6 +1,6 @@
+mod bluetool;
 mod bluetooth;
-mod btui;
 mod input;
 
+pub use bluetool::{AppMode, Banner, BannerType, BluetoolApp};
 pub use bluetooth::BTDevice;
-pub use btui::{AppMode, BTUIApp, Banner, BannerType};

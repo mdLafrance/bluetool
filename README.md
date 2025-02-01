@@ -1,5 +1,5 @@
 <h1 align=center>
-  BTui
+  BlueTool
 </h1>
 <h3 align=center>
   A TUI Bluetooth device manager
@@ -11,24 +11,24 @@
 
 </div>
 <br />
-`btui` is a terminal gui app for linux Bluez systems, meant to be easier to use than `bluetoothctl`, and quicker than a traditional GUI.
+`bluetool` is a terminal gui app for linux Bluez systems, meant to be easier to use than `bluetoothctl`, and quicker than a traditional GUI.
 
 ## Usage
-Run `btui` from the terminal to drop into the gui. Press **q** at any time to quit.
+Run `bluetool` from the terminal to drop into the gui. Press **q** at any time to quit.
 
-Commands keys are displayed along the bottom of the window (see screenshot below). `BTUI` will continually listen for new devices and device updates.
+Commands keys are displayed along the bottom of the window (see screenshot below). `bluetool` will continually listen for new devices and device updates.
 
 ## Installation
 ### Cargo
 Install with `cargo`:
 ```bash
-cargo install btui
-btui --help
+cargo install bluetool
+bluetool --help
 ```
-This builds and installs the `btui` binary.
+This builds and installs the `bluetool` binary.
 
 ### Nix
-If you're on nix (like me), I've included a [nix flake](./default.nix) in the package you can use to run `btui` or install it.
+If you're on nix (like me), I've included a [nix flake](./default.nix) in the package you can use to run `bluetool` or install it.
 > I'm currently working on adding this to nixpkgs
 
 ### Arch

@@ -4,7 +4,7 @@ use std::sync::Arc;
 use crossterm::event::{Event, EventStream, KeyCode};
 use tokio::{sync::mpsc::Sender, task::JoinHandle};
 
-use super::btui::AppEvent;
+use super::bluetool::AppEvent;
 
 pub fn launch_key_listener(event_send_chan: Arc<Sender<AppEvent>>) -> JoinHandle<()> {
     let mut event_stream = EventStream::new();

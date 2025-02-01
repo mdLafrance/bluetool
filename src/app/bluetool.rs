@@ -53,7 +53,7 @@ pub enum AppMode {
     TryRemove(BTDevice),
 }
 
-pub struct BTUIApp {
+pub struct BluetoolApp {
     devices: Rc<RefCell<Vec<BTDevice>>>,
     event_recv_chan: Receiver<AppEvent>,
     event_send_chan: Arc<Sender<AppEvent>>,
@@ -61,11 +61,11 @@ pub struct BTUIApp {
     banner: Option<Banner>,
 }
 
-impl BTUIApp {
+impl BluetoolApp {
     /// Instantiate an instance of the app object
     pub fn new() -> Self {
         let (send, recv) = channel(128);
-        BTUIApp {
+        BluetoolApp {
             devices: Rc::new(RefCell::new(Vec::with_capacity(64))),
             event_recv_chan: recv,
             event_send_chan: Arc::new(send),

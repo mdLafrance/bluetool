@@ -14,7 +14,7 @@ use std::{
 };
 use tokio::{sync::mpsc::Sender, task::JoinHandle};
 
-use super::btui::AppEvent;
+use super::bluetool::AppEvent;
 
 #[derive(Debug, Clone)]
 pub struct BTDevice {
