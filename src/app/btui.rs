@@ -15,7 +15,6 @@ use crate::{
 
 use super::bluetooth::BTDevice;
 
-#[derive(Debug)]
 pub enum AppEvent {
     Pass,
     Exit,
@@ -30,8 +29,6 @@ pub enum AppEvent {
     PairRequested,
     DisconnectRequested,
     RemoveRequested,
-    DebugFailBanner,
-    DebugSuccessBanner,
     ShowHideUnnamed,
     InspectCurrent,
 }
@@ -89,7 +86,6 @@ impl BTUIApp {
             table_state: TableState::new(),
             banner: None,
             show_unnamed: false,
-            inspect_scroll: 0,
             inspect_text: None,
         };
 
@@ -119,20 +115,6 @@ impl BTUIApp {
                                 self.banner = None;
                             }
                         }
-                    }
-                    AppEvent::DebugFailBanner => {
-                        self.set_new_banner(Banner(
-                            "Failure message!".to_owned(),
-                            BannerType::Failure,
-                        ))
-                        .await
-                    }
-                    AppEvent::DebugSuccessBanner => {
-                        self.set_new_banner(Banner(
-                            "Success message!".to_owned(),
-                            BannerType::Success,
-                        ))
-                        .await
                     }
                     _ => {}
                 };

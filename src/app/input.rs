@@ -33,10 +33,7 @@ pub fn launch_key_listener(event_send_chan: Arc<Sender<AppEvent>>) -> JoinHandle
                             .unwrap();
                     }
                     KeyCode::Char('p') => {
-                        event_send_chan
-                            .send(AppEvent::ConnectRequested)
-                            .await
-                            .unwrap();
+                        event_send_chan.send(AppEvent::PairRequested).await.unwrap();
                     }
                     KeyCode::Char('d') => {
                         event_send_chan

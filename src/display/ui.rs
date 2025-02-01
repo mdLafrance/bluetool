@@ -2,7 +2,6 @@ use std::{
     cell::RefCell,
     io::{stdout, Stdout},
     rc::Rc,
-    time::{SystemTime, UNIX_EPOCH},
 };
 
 use anyhow::Result;
@@ -18,7 +17,7 @@ use ratatui::{
         Direction::{self},
         Layout, Rect,
     },
-    style::{Color, Style, Stylize},
+    style::{Style, Stylize},
     text::Span,
     widgets::{Block, BorderType, Borders, Paragraph, TableState},
     Frame, Terminal,
@@ -40,7 +39,6 @@ pub struct UIState<'a> {
     pub banner: Option<Banner>,
     pub table_state: TableState,
     pub show_unnamed: bool,
-    pub inspect_scroll: u16,
     pub inspect_text: Option<Paragraph<'a>>,
 }
 
@@ -80,11 +78,11 @@ pub fn draw_ui(f: &mut Frame<'_>, ui_state: &mut UIState<'_>, mode: AppMode) {
     match &mode {
         AppMode::Inspect(d) => {
             draw_inspect_panel(f, table_area, ui_state, d);
-            draw_inspect_controls(f, controls_area, ui_state);
+            draw_inspect_controls(f, controls_area);
         }
         _ => {
             draw_table(f, table_area, ui_state);
-            draw_browse_controls(f, controls_area, ui_state);
+            draw_browse_controls(f, controls_area);
         }
     }
 

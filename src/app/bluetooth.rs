@@ -2,7 +2,7 @@
 
 use anyhow::Result;
 use bluer::{
-    Adapter, AdapterEvent, Address, Device, DeviceEvent, DiscoveryFilter, DiscoveryTransport, Uuid,
+    AdapterEvent, Address, Device, DeviceEvent, DiscoveryFilter, DiscoveryTransport, Uuid,
 };
 use futures::{pin_mut, stream::SelectAll, StreamExt};
 use std::{

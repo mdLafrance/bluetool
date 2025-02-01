@@ -20,20 +20,15 @@ static CONTROLS: [(&'static str, &'static str); 7] = [
 
 static INSPECT_CONTROLS: [(&'static str, &'static str); 1] = [("ESC", "Return")];
 
-pub fn draw_browse_controls(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
-    draw_controls(f, area, ui_state, &CONTROLS);
+pub fn draw_browse_controls(f: &mut Frame, area: Rect) {
+    draw_controls(f, area, &CONTROLS);
 }
 
-pub fn draw_inspect_controls(f: &mut Frame, area: Rect, ui_state: &mut UIState) {
-    draw_controls(f, area, ui_state, &INSPECT_CONTROLS);
+pub fn draw_inspect_controls(f: &mut Frame, area: Rect) {
+    draw_controls(f, area, &INSPECT_CONTROLS);
 }
 
-pub fn draw_controls(
-    f: &mut Frame,
-    area: Rect,
-    ui_state: &mut UIState,
-    control_strings: &[(&'static str, &'static str)],
-) {
+pub fn draw_controls(f: &mut Frame, area: Rect, control_strings: &[(&'static str, &'static str)]) {
     let block = Block::new()
         .borders(Borders::ALL)
         .border_style(Style::new().fg(BMColors::DARK_GRAY))
@@ -85,7 +80,7 @@ pub fn draw_controls(
 pub fn draw_quit_hint(f: &mut Frame, area: Rect, _: &mut UIState) {
     let quit_hint = Line::from(vec![
         Span::styled("", Style::new().fg(BMColors::DARK_GRAY)),
-        Span::styled(" [q] ", Style::new().bold().white().bg(BMColors::DARK_GRAY)),
+        Span::styled(" q ", Style::new().bold().white().bg(BMColors::DARK_GRAY)),
         Span::styled("quit ", Style::new().white().bg(BMColors::DARK_GRAY)),
         Span::styled("", Style::new().fg(BMColors::DARK_GRAY)),
     ]);

@@ -2,8 +2,8 @@ use bluer::Uuid;
 use ratatui::{
     layout::Rect,
     style::{Style, Stylize},
-    text::{Line, Span},
-    widgets::{Block, BorderType, Borders, Padding, Paragraph, Widget, Wrap},
+    text::Line,
+    widgets::{Block, BorderType, Borders, Padding, Paragraph, Wrap},
     Frame,
 };
 
