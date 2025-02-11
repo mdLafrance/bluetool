@@ -19,7 +19,7 @@ A terminal gui app for linux Bluez systems, meant to be easier to use than `blue
 ## Usage
 Run `bluetool` from the terminal to drop into the gui. Press **q** at any time to quit.
 
-Commands keys are displayed along the bottom of the window. `bluetool` will continually listen for new devices and device updates.
+Command keys are displayed along the bottom of the window. `bluetool` will continually listen for new devices and device updates.
 
 ## Installation
 ### Cargo
@@ -29,13 +29,8 @@ cargo install bluetool
 ```
 This builds and installs the `bluetool` binary.
 
-## Issues
+## TODO
 - [ ] Try and get signal from device services if Rssi not advertised
 - [ ] Try and get battery from device services
-
-### Nix
-If you're on nix (like me), I've included a [nix flake](./default.nix) in the package you can use to run `bluetool` or install it.
-> I'm currently working on adding this to nixpkgs
-
-### Arch
-> I'm currently working on adding this to the AUR
+- [ ] Upload to nix
+- [ ] Upload to AUR
